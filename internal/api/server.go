@@ -156,7 +156,9 @@ func (s *Server) handleTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	if encodeErr := json.NewEncoder(w).Encode(result); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleTaskStatus 查询任务状态
@@ -176,12 +178,16 @@ func (s *Server) handleTaskStatus(w http.ResponseWriter, r *http.Request) {
 	task, ok := s.store.GetTask(taskID)
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "task not found"})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": "task not found"}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(task)
+	if encodeErr := json.NewEncoder(w).Encode(task); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleTaskList 列出所有任务

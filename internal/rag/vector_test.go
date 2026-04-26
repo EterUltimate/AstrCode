@@ -28,9 +28,15 @@ func TestMemoryVectorStore(t *testing.T) {
 	vec2 := []float32{0.0, 1.0, 0.0}
 	vec3 := []float32{0.9, 0.1, 0.0}
 
-	store.Add("v1", vec1, map[string]interface{}{"name": "vector1"})
-	store.Add("v2", vec2, map[string]interface{}{"name": "vector2"})
-	store.Add("v3", vec3, map[string]interface{}{"name": "vector3"})
+	if err := store.Add("v1", vec1, map[string]interface{}{"name": "vector1"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Add("v2", vec2, map[string]interface{}{"name": "vector2"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Add("v3", vec3, map[string]interface{}{"name": "vector3"}); err != nil {
+		t.Fatal(err)
+	}
 
 	// Search
 	query := []float32{1.0, 0.0, 0.0}
