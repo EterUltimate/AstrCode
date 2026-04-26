@@ -1,0 +1,329 @@
+package api
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/EterUltimate/astrcode/internal/agent"
+	"github.com/EterUltimate/astrcode/internal/model"
+)
+
+// Server HTTP + WebSocket API 服务器
+type Server struct {
+	agent     *agent.Agent
+	hub       *Hub
+	store     *model.TaskStore
+	server    *http.Server
+}
+
+// NewServer 创建新的 API 服务器
+func NewServer(ag *agent.Agent, hub *Hub, store *model.TaskStore, addr string) *Server {
+	s := &Server{
+		agent:  ag,
+		hub:    hub,
+		store:  store,
+	}
+
+	mux := http.NewServeMux()
+
+	// 任务 API
+	mux.HandleFunc("/api/task", s.handleTask)
+	mux.HandleFunc("/api/task/", s.handleTaskStatus)
+
+	// 技能/计划/执行 API
+	mux.HandleFunc("/api/skills", s.handleSkills)
+	mux.HandleFunc("/api/plan", s.handlePlan)
+	mux.HandleFunc("/api/execute", s.handleExecute)
+
+	// 可视化/状态 API
+	mux.HandleFunc("/api/tasks", s.handleTaskList)
+	mux.HandleFunc("/api/snapshot/", s.handleSnapshot)
+
+	// WebSocket
+	mux.HandleFunc("/ws", hub.HandleWS)
+
+	// 健康检查
+	mux.HandleFunc("/api/health", s.handleHealth)
+	mux.HandleFunc("/health", s.handleHealth)
+
+	s.server = &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	return s
+}
+
+// Start 启动服务器
+func (s *Server) Start() error {
+	return s.server.ListenAndServe()
+}
+
+// Stop 停止服务器
+func (s *Server) Stop(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
+}
+
+// ============================================================
+// 任务 API
+// ============================================================
+
+// handleTask 提交任务（完整流程，异步执行）
+func (s *Server) handleTask(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Task    string `json:"task"`
+		Async   bool   `json:"async,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if req.Async {
+		// 异步执行
+		task, err := s.agent.CreateTask(req.Task)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		// 存储任务
+		s.store.CreateTask(task)
+
+		// 后台执行
+		go func() {
+			s.agent.ProcessTaskAsync(context.Background(), task)
+			s.store.UpdateTask(task)
+		}()
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"task_id": task.ID,
+			"status":  task.Status,
+			"ws":      "/ws",
+		})
+		return
+	}
+
+	// 同步执行
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
+	defer cancel()
+
+	result, err := s.agent.ProcessTask(ctx, req.Task)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": err.Error(),
+			"task":  result,
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+// handleTaskStatus 查询任务状态
+func (s *Server) handleTaskStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 {
+		http.Error(w, "Task ID required", http.StatusBadRequest)
+		return
+	}
+	taskID := parts[3]
+
+	task, ok := s.store.GetTask(taskID)
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "task not found"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(task)
+}
+
+// handleTaskList 列出所有任务
+func (s *Server) handleTaskList(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	tasks := s.store.ListTasks(100)
+	running := s.store.ListRunning()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"total":    len(tasks),
+		"running":  len(running),
+		"tasks":    tasks,
+	})
+}
+
+// handleSnapshot 执行快照（可视化数据）
+func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 {
+		http.Error(w, "Task ID required", http.StatusBadRequest)
+		return
+	}
+	taskID := parts[3]
+
+	task, ok := s.store.GetTask(taskID)
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "task not found"})
+		return
+	}
+
+	// 获取关联的 Plan
+	var plan *model.Plan
+	if task.Result != "" {
+		// 尝试从 planCache 获取
+	} else {
+		plan, _ = s.store.GetPlan(task.ID)
+	}
+
+	snapshot := model.BuildSnapshot(task, plan, nil)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(snapshot)
+}
+
+// ============================================================
+// 技能/计划/执行 API
+// ============================================================
+
+// handleSkills 获取可用技能列表
+func (s *Server) handleSkills(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	stars := s.agent.GetStarManager().GetAllStars()
+	allSkills := s.agent.GetAllSkills()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"stars":    stars,
+		"skills":   allSkills,
+		"count":    len(allSkills),
+	})
+}
+
+// handlePlan 生成计划（不执行）
+func (s *Server) handlePlan(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Task string `json:"task"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
+	defer cancel()
+
+	plan, err := s.agent.GeneratePlan(ctx, req.Task)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(plan)
+}
+
+// handleExecute 直接执行步骤
+func (s *Server) handleExecute(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Handler string                  `json:"handler"`
+		Event   *model.AstrMessageEvent `json:"event"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	if req.Event == nil {
+		req.Event = &model.AstrMessageEvent{
+			MessageStr: req.Handler,
+			SessionID:  "api",
+			PlatformMeta: model.PlatformMetadata{
+				ID:   "api",
+				Name: "AstrCode API",
+			},
+		}
+	}
+
+	result, err := s.agent.ProcessEvent(ctx, req.Handler, req.Event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+// handleHealth 健康检查
+func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "ok",
+		"time":    time.Now().Format(time.RFC3339),
+		"version": "0.4.0",
+		"phase":   "4",
+		"ws_clients": s.hub.ClientCount(),
+		"features": []string{
+			"json-rpc-sdk",
+			"websocket-transport",
+			"star-discovery",
+			"skill-retriever",
+			"plan-execution",
+			"adaptive-planning",
+			"fallback-strategies",
+			"persist-cache",
+			"task-store",
+			"ws-broadcast",
+			"execution-snapshot",
+			"async-task",
+		},
+	})
+}

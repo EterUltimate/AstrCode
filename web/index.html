@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstrCode Dashboard</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a28;
+  --border: #2a2a3a;
+  --text: #e0e0e8;
+  --text-dim: #8888a0;
+  --accent: #6c5ce7;
+  --accent-glow: rgba(108,92,231,0.3);
+  --green: #00d68f;
+  --red: #ff6b6b;
+  --yellow: #ffc048;
+  --blue: #4da6ff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+header h1 { font-size: 18px; font-weight: 600; }
+header h1 span { color: var(--accent); }
+.status-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; background:var(--surface2); border:1px solid var(--border); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.card-title { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.card-full { grid-column: 1 / -1; }
+
+/* Task Input */
+#task-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 16px; color:var(--text); font-family:inherit; font-size:14px; resize:vertical; min-height:80px; }
+#task-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.btn { padding:10px 20px; border:none; border-radius:8px; font-family:inherit; font-size:13px; cursor:pointer; font-weight:600; transition:all .2s; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { filter:brightness(1.2); transform:translateY(-1px); }
+.btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.input-row { display:flex; gap:12px; margin-top:12px; }
+
+/* Task List */
+.task-item { padding:12px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer; transition:all .2s; }
+.task-item:hover { border-color:var(--accent); background:var(--surface2); }
+.task-id { font-size:11px; color:var(--text-dim); }
+.task-content { font-size:13px; margin:4px 0; }
+.task-status { font-size:11px; padding:2px 8px; border-radius:10px; display:inline-block; }
+.status-executing { background:rgba(77,166,255,0.15); color:var(--blue); }
+.status-completed { background:rgba(0,214,143,0.15); color:var(--green); }
+.status-failed { background:rgba(255,107,107,0.15); color:var(--red); }
+.status-pending { background:rgba(255,192,72,0.15); color:var(--yellow); }
+
+/* Execution Graph */
+.step-node { padding:10px 16px; border:1px solid var(--border); border-radius:8px; margin:6px 0; position:relative; transition:all .3s; }
+.step-node.running { border-color:var(--blue); background:rgba(77,166,255,0.08); }
+.step-node.completed { border-color:var(--green); background:rgba(0,214,143,0.08); }
+.step-node.failed { border-color:var(--red); background:rgba(255,107,107,0.08); }
+.step-node.pending { border-color:var(--border); opacity:0.5; }
+.step-name { font-size:13px; font-weight:600; }
+.step-meta { font-size:11px; color:var(--text-dim); margin-top:4px; }
+.step-dep-line { margin-left:20px; border-left:2px solid var(--border); padding-left:16px; }
+
+/* Event Stream */
+#event-stream { max-height:400px; overflow-y:auto; font-size:12px; }
+.event-item { padding:6px 0; border-bottom:1px solid var(--surface2); display:flex; gap:10px; }
+.event-time { color:var(--text-dim); min-width:70px; }
+.event-type { min-width:110px; font-weight:600; }
+.event-type.step_started { color:var(--blue); }
+.event-type.step_completed { color:var(--green); }
+.event-type.step_failed { color:var(--red); }
+.event-type.task_created { color:var(--accent); }
+.event-type.task_completed { color:var(--green); }
+
+/* Stats */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.stat-card { background:var(--surface2); border-radius:8px; padding:16px; text-align:center; }
+.stat-value { font-size:28px; font-weight:700; }
+.stat-label { font-size:11px; color:var(--text-dim); margin-top:4px; }
+
+@media (max-width:900px) { .container { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🚀 <span>AstrCode</span> Dashboard</h1>
+  <div class="status-badge">
+    <div class="status-dot" id="ws-dot"></div>
+    <span id="ws-status">Connecting...</span>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Task Input -->
+  <div class="card card-full">
+    <div class="card-title">Submit Task</div>
+    <textarea id="task-input" placeholder="Enter task description... e.g. Read the code and fix the bug"></textarea>
+    <div class="input-row">
+      <button class="btn btn-primary" onclick="submitTask(false)">▶ Execute</button>
+      <button class="btn btn-secondary" onclick="submitTask(true)">⚡ Async Execute</button>
+      <button class="btn btn-secondary" onclick="generatePlan()">📋 Plan Only</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="card card-full">
+    <div class="card-title">System Status</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="stat-tasks">0</div><div class="stat-label">Total Tasks</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-running">0</div><div class="stat-label">Running</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-skills">0</div><div class="stat-label">Skills</div></div>
+    </div>
+  </div>
+
+  <!-- Task List -->
+  <div class="card">
+    <div class="card-title">Tasks</div>
+    <div id="task-list"><div style="color:var(--text-dim);font-size:13px;">No tasks yet</div></div>
+  </div>
+
+  <!-- Execution Graph -->
+  <div class="card">
+    <div class="card-title">Execution Graph</div>
+    <div id="exec-graph"><div style="color:var(--text-dim);font-size:13px;">Submit a task to see execution graph</div></div>
+  </div>
+
+  <!-- Event Stream -->
+  <div class="card card-full">
+    <div class="card-title">Live Event Stream</div>
+    <div id="event-stream"></div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin;
+let ws = null;
+let currentPlan = null;
+let taskCount = 0;
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onopen = () => {
+    document.getElementById('ws-dot').style.background = 'var(--green)';
+    document.getElementById('ws-status').textContent = 'Connected';
+  };
+  ws.onclose = () => {
+    document.getElementById('ws-dot').style.background = 'var(--red)';
+    document.getElementById('ws-status').textContent = 'Disconnected';
+    setTimeout(connectWS, 3000);
+  };
+  ws.onmessage = (e) => {
+    const evt = JSON.parse(e.data);
+    addEvent(evt);
+    updateGraph(evt);
+  };
+}
+
+async function submitTask(async) {
+  const task = document.getElementById('task-input').value.trim();
+  if (!task) return;
+  const resp = await fetch(`${API}/api/task`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({task, async})
+  });
+  const data = await resp.json();
+  taskCount++;
+  document.getElementById('stat-tasks').textContent = taskCount;
+  refreshTaskList();
+  if (data.task_id) {
+    addEvent({type:'task_created', task_id:data.task_id, data:{status:'submitted'}});
+  }
+}
+
+async function generatePlan() {
+  const task = document.getElementById('task-input').value.trim();
+  if (!task) return;
+  const resp = await fetch(`${API}/api/plan`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({task})
+  });
+  const plan = await resp.json();
+  currentPlan = plan;
+  renderGraph(plan);
+}
+
+function addEvent(evt) {
+  const stream = document.getElementById('event-stream');
+  const time = new Date(evt.timestamp || Date.now()).toLocaleTimeString('en',{hour12:false});
+  const div = document.createElement('div');
+  div.className = 'event-item';
+  div.innerHTML = `<span class="event-time">${time}</span><span class="event-type ${evt.type}">${evt.type}</span><span>${evt.step_id||evt.task_id||''} ${evt.data?JSON.stringify(evt.data).substring(0,80):''}</span>`;
+  stream.prepend(div);
+}
+
+function updateGraph(evt) {
+  if (evt.type === 'task_created' && evt.task_id) {
+    loadSnapshot(evt.task_id);
+  }
+  if (evt.type === 'step_started' || evt.type === 'step_completed' || evt.type === 'step_failed') {
+    if (evt.task_id) loadSnapshot(evt.task_id);
+  }
+  if (evt.type === 'task_completed' && evt.task_id) {
+    loadSnapshot(evt.task_id);
+    refreshTaskList();
+  }
+}
+
+async function loadSnapshot(taskId) {
+  try {
+    const resp = await fetch(`${API}/api/snapshot/${taskId}`);
+    const snap = await resp.json();
+    if (snap && snap.steps) renderGraphFromSnapshot(snap);
+    if (snap && snap.task_status === 'executing') {
+      document.getElementById('stat-running').textContent = parseInt(document.getElementById('stat-running').textContent)+1;
+    }
+  } catch(e) {}
+}
+
+function renderGraphFromSnapshot(snap) {
+  const container = document.getElementById('exec-graph');
+  container.innerHTML = '';
+  if (!snap.steps || snap.steps.length === 0) return;
+
+  const statusIcon = {completed:'✅', running:'🔄', failed:'❌', pending:'⏳', skipped:'⏭️'};
+  const stepsByDep = {};
+  const roots = [];
+
+  snap.steps.forEach(s => {
+    if (!s.depends_on || s.depends_on.length === 0) {
+      roots.push(s);
+    } else {
+      s.depends_on.forEach(dep => {
+        if (!stepsByDep[dep]) stepsByDep[dep] = [];
+        stepsByDep[dep].push(s);
+      });
+    }
+  });
+
+  function renderStep(step, depth) {
+    const div = document.createElement('div');
+    div.className = `step-node ${step.status}`;
+    div.style.marginLeft = (depth * 20) + 'px';
+    const dur = step.duration ? ` (${step.duration}ms)` : '';
+    div.innerHTML = `<div class="step-name">${statusIcon[step.status]||'⏳'} ${step.skill||step.type} ${step.id}</div><div class="step-meta">${step.type} · ${step.status}${dur}${step.error?' · '+step.error:''}</div>`;
+    container.appendChild(div);
+
+    if (stepsByDep[step.id]) {
+      stepsByDep[step.id].forEach(child => renderStep(child, depth+1));
+    }
+  }
+
+  roots.forEach(r => renderStep(r, 0));
+}
+
+function renderGraph(plan) {
+  renderGraphFromSnapshot({steps: plan.steps || []});
+}
+
+async function refreshTaskList() {
+  try {
+    const resp = await fetch(`${API}/api/tasks`);
+    const data = await resp.json();
+    const list = document.getElementById('task-list');
+    if (!data.tasks || data.tasks.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px">No tasks yet</div>';
+      return;
+    }
+    list.innerHTML = '';
+    data.tasks.slice(0, 20).forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'task-item';
+      div.onclick = () => loadSnapshot(t.id);
+      const statusClass = `status-${t.status}`;
+      div.innerHTML = `<div class="task-id">${t.id}</div><div class="task-content">${t.content||''}</div><span class="task-status ${statusClass}">${t.status}</span>`;
+      list.appendChild(div);
+    });
+    document.getElementById('stat-tasks').textContent = data.total || data.tasks.length;
+    document.getElementById('stat-running').textContent = data.running || 0;
+  } catch(e) {}
+}
+
+async function loadSkills() {
+  try {
+    const resp = await fetch(`${API}/api/skills`);
+    const data = await resp.json();
+    document.getElementById('stat-skills').textContent = data.count || 0;
+  } catch(e) {}
+}
+
+connectWS();
+loadSkills();
+refreshTaskList();
+</script>
+</body>
+</html>
