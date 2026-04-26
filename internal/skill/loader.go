@@ -45,7 +45,7 @@ func (l *Loader) LoadFromDirectory() ([]model.Skill, error) {
 // loadSkill 加载单个 Skill
 func (l *Loader) loadSkill(name string) (model.Skill, error) {
 	skillPath := filepath.Join(l.basePath, name)
-	
+
 	// 读取 SKILL.md
 	skillFile := filepath.Join(skillPath, "SKILL.md")
 	content, err := os.ReadFile(skillFile)
@@ -72,7 +72,7 @@ func parseSkillMarkdown(name, content string) model.Skill {
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// 提取标题作为描述
 		if strings.HasPrefix(line, "# ") && skill.Description == "" {
 			skill.Description = strings.TrimPrefix(line, "# ")

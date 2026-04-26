@@ -44,33 +44,33 @@ type JSONRPCErrorResponse struct {
 
 // AstrMessageEvent AstrBot 消息事件
 type AstrMessageEvent struct {
-	MessageStr         string                 `json:"message_str"`
-	MessageObj         AstrBotMessage         `json:"message_obj"`
-	PlatformMeta       PlatformMetadata       `json:"platform_meta"`
-	SessionID          string                 `json:"session_id"`
-	Role               string                 `json:"role"` // "admin" | "member"
-	IsWake             bool                   `json:"is_wake"`
-	IsAtOrWakeCommand  bool                   `json:"is_at_or_wake_command"`
-	Extras             map[string]interface{} `json:"extras,omitempty"`
-	Result             *MessageEventResult    `json:"result,omitempty"`
-	HasSendOper        bool                   `json:"has_send_oper"`
-	CallLLM            bool                   `json:"call_llm"`
-	PluginsName        []string               `json:"plugins_name,omitempty"`
+	MessageStr        string                 `json:"message_str"`
+	MessageObj        AstrBotMessage         `json:"message_obj"`
+	PlatformMeta      PlatformMetadata       `json:"platform_meta"`
+	SessionID         string                 `json:"session_id"`
+	Role              string                 `json:"role"` // "admin" | "member"
+	IsWake            bool                   `json:"is_wake"`
+	IsAtOrWakeCommand bool                   `json:"is_at_or_wake_command"`
+	Extras            map[string]interface{} `json:"extras,omitempty"`
+	Result            *MessageEventResult    `json:"result,omitempty"`
+	HasSendOper       bool                   `json:"has_send_oper"`
+	CallLLM           bool                   `json:"call_llm"`
+	PluginsName       []string               `json:"plugins_name,omitempty"`
 }
 
 // AstrBotMessage 消息对象
 type AstrBotMessage struct {
-	Type      string `json:"type"` // "friend" | "group"
-	Message   []MessageComponent `json:"message"`
-	GroupID   string `json:"group_id"`
-	SelfID    string `json:"self_id"`
-	Sender    Sender `json:"sender"`
+	Type    string             `json:"type"` // "friend" | "group"
+	Message []MessageComponent `json:"message"`
+	GroupID string             `json:"group_id"`
+	SelfID  string             `json:"self_id"`
+	Sender  Sender             `json:"sender"`
 }
 
 // Sender 消息发送者
 type Sender struct {
-	UserID    string `json:"user_id"`
-	Nickname  string `json:"nickname"`
+	UserID   string `json:"user_id"`
+	Nickname string `json:"nickname"`
 }
 
 // MessageComponent 消息组件（简化版）
@@ -88,9 +88,9 @@ type PlatformMetadata struct {
 
 // MessageEventResult 事件结果
 type MessageEventResult struct {
-	ResultType string `json:"result_type"` // "continue" | "stop"
+	ResultType string             `json:"result_type"` // "continue" | "stop"
 	Chain      []MessageComponent `json:"chain,omitempty"`
-	Message    string `json:"message,omitempty"`
+	Message    string             `json:"message,omitempty"`
 }
 
 // ============================================================
@@ -99,18 +99,18 @@ type MessageEventResult struct {
 
 // StarMetadata Star/插件元数据
 type StarMetadata struct {
-	Name                 string   `json:"name"`
-	Author               string   `json:"author,omitempty"`
-	Desc                 string   `json:"desc,omitempty"`
-	Version              string   `json:"version,omitempty"`
-	Repo                 string   `json:"repo,omitempty"`
-	ModulePath           string   `json:"module_path,omitempty"`
-	RootDirName          string   `json:"root_dir_name,omitempty"`
-	Reserved             bool     `json:"reserved"`
-	Activated            bool     `json:"activated"`
-	HandlerFullNames     []string `json:"star_handler_full_names,omitempty"`
-	DisplayName          string   `json:"display_name,omitempty"`
-	LogoPath             string   `json:"logo_path,omitempty"`
+	Name             string   `json:"name"`
+	Author           string   `json:"author,omitempty"`
+	Desc             string   `json:"desc,omitempty"`
+	Version          string   `json:"version,omitempty"`
+	Repo             string   `json:"repo,omitempty"`
+	ModulePath       string   `json:"module_path,omitempty"`
+	RootDirName      string   `json:"root_dir_name,omitempty"`
+	Reserved         bool     `json:"reserved"`
+	Activated        bool     `json:"activated"`
+	HandlerFullNames []string `json:"star_handler_full_names,omitempty"`
+	DisplayName      string   `json:"display_name,omitempty"`
+	LogoPath         string   `json:"logo_path,omitempty"`
 }
 
 // PluginYAML plugin.yaml 定义
@@ -166,8 +166,8 @@ type ToolSet struct {
 
 // OpenAIFuncDef OpenAI 格式的函数定义
 type OpenAIFuncDef struct {
-	Type     string       `json:"type"`
-	Function OpenAIFunc   `json:"function"`
+	Type     string     `json:"type"`
+	Function OpenAIFunc `json:"function"`
 }
 
 // OpenAIFunc OpenAI 函数体
@@ -199,7 +199,7 @@ func (ts *ToolSet) ToOpenAISchema() []OpenAIFuncDef {
 
 // Message 对话消息
 type Message struct {
-	Role    string      `json:"role"` // "system" | "user" | "assistant" | "tool"
+	Role    string      `json:"role"`    // "system" | "user" | "assistant" | "tool"
 	Content interface{} `json:"content"` // string | []ContentPart
 }
 
@@ -211,9 +211,9 @@ type ContentPart struct {
 
 // ToolCall 工具调用
 type ToolCall struct {
-	ID       string            `json:"id"`
-	Type     string            `json:"type"` // "function"
-	Function ToolCallFunction  `json:"function"`
+	ID       string           `json:"id"`
+	Type     string           `json:"type"` // "function"
+	Function ToolCallFunction `json:"function"`
 }
 
 // ToolCallFunction 工具调用函数体

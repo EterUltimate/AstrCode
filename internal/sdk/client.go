@@ -15,12 +15,12 @@ import (
 
 // AstrBotClient AstrBot SDK 客户端（对齐 astrbot-sdk JSON-RPC 协议）
 type AstrBotClient struct {
-	BaseURL      string
-	Token        string
-	HTTPClient   *http.Client
-	MaxRetries   int
-	RequestID    int
-	mu           sync.Mutex
+	BaseURL    string
+	Token      string
+	HTTPClient *http.Client
+	MaxRetries int
+	RequestID  int
+	mu         sync.Mutex
 }
 
 // NewAstrBotClient 创建新的 SDK 客户端
@@ -98,9 +98,9 @@ func (c *AstrBotClient) doRPCRequest(ctx context.Context, req *model.JSONRPCRequ
 
 	// 解析响应：尝试 success 或 error
 	var baseResp struct {
-		JSONRPC string `json:"jsonrpc"`
-		ID      string `json:"id"`
-		Result  json.RawMessage `json:"result,omitempty"`
+		JSONRPC string                  `json:"jsonrpc"`
+		ID      string                  `json:"id"`
+		Result  json.RawMessage         `json:"result,omitempty"`
 		Error   *model.JSONRPCErrorData `json:"error,omitempty"`
 	}
 	if err := json.Unmarshal(body, &baseResp); err != nil {

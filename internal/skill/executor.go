@@ -115,9 +115,9 @@ func (e *Executor) Execute(ctx context.Context, plan *model.Plan) (*model.Task, 
 	task.CompletedAt = time.Now().Unix()
 
 	e.emit("task_completed", taskID, plan.ID, "", map[string]interface{}{
-		"status":    task.Status,
-		"duration":  totalMs,
-		"timeline":  timeline.Items,
+		"status":   task.Status,
+		"duration": totalMs,
+		"timeline": timeline.Items,
 	})
 	return task, nil
 }

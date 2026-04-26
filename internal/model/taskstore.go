@@ -7,9 +7,9 @@ import (
 
 // TaskStore 任务状态存储
 type TaskStore struct {
-	tasks  map[string]*Task
-	plans  map[string]*Plan
-	mu     sync.RWMutex
+	tasks map[string]*Task
+	plans map[string]*Plan
+	mu    sync.RWMutex
 }
 
 // NewTaskStore 创建任务存储
@@ -128,7 +128,7 @@ func (t *StepTimeline) AddWithDuration(stepID, status, message string, startNano
 
 // WSEvent WebSocket 事件
 type WSEvent struct {
-	Type      string      `json:"type"`      // task_created / task_updated / step_started / step_completed / step_failed / plan_ready
+	Type      string      `json:"type"` // task_created / task_updated / step_started / step_completed / step_failed / plan_ready
 	TaskID    string      `json:"task_id"`
 	PlanID    string      `json:"plan_id,omitempty"`
 	StepID    string      `json:"step_id,omitempty"`
@@ -153,13 +153,13 @@ func NewWSEvent(eventType, taskID, stepID string, data interface{}) *WSEvent {
 
 // ExecutionSnapshot 执行快照
 type ExecutionSnapshot struct {
-	TaskID       string            `json:"task_id"`
-	PlanID       string            `json:"plan_id"`
-	TaskStatus   string            `json:"task_status"`
-	Steps        []StepSnapshot   `json:"steps"`
-	Timeline     *StepTimeline     `json:"timeline,omitempty"`
-	StartedAt    int64             `json:"started_at"`
-	CompletedAt  int64             `json:"completed_at,omitempty"`
+	TaskID      string         `json:"task_id"`
+	PlanID      string         `json:"plan_id"`
+	TaskStatus  string         `json:"task_status"`
+	Steps       []StepSnapshot `json:"steps"`
+	Timeline    *StepTimeline  `json:"timeline,omitempty"`
+	StartedAt   int64          `json:"started_at"`
+	CompletedAt int64          `json:"completed_at,omitempty"`
 }
 
 // StepSnapshot 步骤快照
@@ -179,9 +179,9 @@ type StepSnapshot struct {
 func BuildSnapshot(task *Task, plan *Plan, timeline *StepTimeline) *ExecutionSnapshot {
 	if plan == nil {
 		return &ExecutionSnapshot{
-			TaskID:     task.ID,
-			TaskStatus: task.Status,
-			StartedAt:  task.CreatedAt,
+			TaskID:      task.ID,
+			TaskStatus:  task.Status,
+			StartedAt:   task.CreatedAt,
 			CompletedAt: task.CompletedAt,
 		}
 	}

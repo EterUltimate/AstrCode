@@ -104,10 +104,10 @@ func buildReplanPrompt(originalPlan *model.Plan, failedStep *model.Step, failure
 type FallbackStrategy string
 
 const (
-	FallbackRetry      FallbackStrategy = "retry"       // 重试
-	FallbackSkip       FallbackStrategy = "skip"        // 跳过
+	FallbackRetry       FallbackStrategy = "retry"       // 重试
+	FallbackSkip        FallbackStrategy = "skip"        // 跳过
 	FallbackAlternative FallbackStrategy = "alternative" // 使用替代方案
-	FallbackManual     FallbackStrategy = "manual"      // 转人工
+	FallbackManual      FallbackStrategy = "manual"      // 转人工
 )
 
 // FallbackHandler 降级处理器
@@ -124,7 +124,7 @@ func NewFallbackHandler() *FallbackHandler {
 			string(model.StepTypeLLM):     FallbackRetry,
 		},
 	}
-	}
+}
 
 // SetStrategy 设置步骤类型的降级策略
 func (fh *FallbackHandler) SetStrategy(stepType model.StepType, strategy FallbackStrategy) {
@@ -258,14 +258,14 @@ type StepResult struct {
 
 // ExecutionReport 执行报告
 type ExecutionReport struct {
-	TaskID      string         `json:"task_id"`
-	PlanID      string         `json:"plan_id"`
-	StartTime   time.Time      `json:"start_time"`
-	EndTime     time.Time      `json:"end_time"`
-	Duration    time.Duration  `json:"duration"`
-	StepResults []StepResult   `json:"step_results"`
-	Status      string         `json:"status"`
-	Error       string         `json:"error,omitempty"`
+	TaskID      string        `json:"task_id"`
+	PlanID      string        `json:"plan_id"`
+	StartTime   time.Time     `json:"start_time"`
+	EndTime     time.Time     `json:"end_time"`
+	Duration    time.Duration `json:"duration"`
+	StepResults []StepResult  `json:"step_results"`
+	Status      string        `json:"status"`
+	Error       string        `json:"error,omitempty"`
 }
 
 // GenerateReport 生成执行报告

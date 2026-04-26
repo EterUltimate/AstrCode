@@ -30,12 +30,12 @@ func (e *Engine) SetSystemPrompt(prompt string) {
 
 // DecisionOutput 决策输出
 type DecisionOutput struct {
-	Action      string   `json:"action"`       // "plan" | "direct" | "clarify"
-	Skills      []string `json:"skills"`       // 选中的技能名
-	Confidence  float64  `json:"confidence"`   // 置信度 0-1
-	Reasoning   string   `json:"reasoning"`    // 决策理由
-	NeedsClarify bool    `json:"needs_clarify"` // 是否需要澄清
-	Questions   []string `json:"questions,omitempty"` // 澄清问题
+	Action       string   `json:"action"`              // "plan" | "direct" | "clarify"
+	Skills       []string `json:"skills"`              // 选中的技能名
+	Confidence   float64  `json:"confidence"`          // 置信度 0-1
+	Reasoning    string   `json:"reasoning"`           // 决策理由
+	NeedsClarify bool     `json:"needs_clarify"`       // 是否需要澄清
+	Questions    []string `json:"questions,omitempty"` // 澄清问题
 }
 
 // BuildDecisionPrompt 构建决策 Prompt

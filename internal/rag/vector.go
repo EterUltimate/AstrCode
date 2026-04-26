@@ -38,7 +38,7 @@ func (s *MemoryVectorStore) Add(id string, embedding []float32, metadata map[str
 	if len(embedding) == 0 {
 		return fmt.Errorf("empty embedding")
 	}
-	
+
 	s.vectors[id] = embedding
 	s.metadata[id] = metadata
 	return nil
@@ -49,14 +49,14 @@ func (s *MemoryVectorStore) Search(embedding []float32, topK int) ([]SearchResul
 	if len(embedding) == 0 {
 		return nil, fmt.Errorf("empty query embedding")
 	}
-	
+
 	var results []SearchResult
-	
+
 	for id, vec := range s.vectors {
 		if len(vec) != len(embedding) {
 			continue
 		}
-		
+
 		score := cosineSimilarity(embedding, vec)
 		results = append(results, SearchResult{
 			ID:       id,
@@ -64,7 +64,7 @@ func (s *MemoryVectorStore) Search(embedding []float32, topK int) ([]SearchResul
 			Metadata: s.metadata[id],
 		})
 	}
-	
+
 	// 按相似度排序
 	for i := 0; i < len(results); i++ {
 		for j := i + 1; j < len(results); j++ {
@@ -73,12 +73,12 @@ func (s *MemoryVectorStore) Search(embedding []float32, topK int) ([]SearchResul
 			}
 		}
 	}
-	
+
 	// 取 Top-K
 	if topK > len(results) {
 		topK = len(results)
 	}
-	
+
 	return results[:topK], nil
 }
 
@@ -94,18 +94,18 @@ func cosineSimilarity(a, b []float32) float64 {
 	if len(a) != len(b) {
 		return 0
 	}
-	
+
 	var dotProduct, normA, normB float64
-	
+
 	for i := 0; i < len(a); i++ {
 		dotProduct += float64(a[i]) * float64(b[i])
 		normA += float64(a[i]) * float64(a[i])
 		normB += float64(b[i]) * float64(b[i])
 	}
-	
+
 	if normA == 0 || normB == 0 {
 		return 0
 	}
-	
+
 	return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB))
 }

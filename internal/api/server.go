@@ -13,18 +13,18 @@ import (
 
 // Server HTTP + WebSocket API 服务器
 type Server struct {
-	agent     *agent.Agent
-	hub       *Hub
-	store     *model.TaskStore
-	server    *http.Server
+	agent  *agent.Agent
+	hub    *Hub
+	store  *model.TaskStore
+	server *http.Server
 }
 
 // NewServer 创建新的 API 服务器
 func NewServer(ag *agent.Agent, hub *Hub, store *model.TaskStore, addr string) *Server {
 	s := &Server{
-		agent:  ag,
-		hub:    hub,
-		store:  store,
+		agent: ag,
+		hub:   hub,
+		store: store,
 	}
 
 	mux := http.NewServeMux()
@@ -79,8 +79,8 @@ func (s *Server) handleTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Task    string `json:"task"`
-		Async   bool   `json:"async,omitempty"`
+		Task  string `json:"task"`
+		Async bool   `json:"async,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -169,9 +169,9 @@ func (s *Server) handleTaskList(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"total":    len(tasks),
-		"running":  len(running),
-		"tasks":    tasks,
+		"total":   len(tasks),
+		"running": len(running),
+		"tasks":   tasks,
 	})
 }
 
@@ -226,9 +226,9 @@ func (s *Server) handleSkills(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"stars":    stars,
-		"skills":   allSkills,
-		"count":    len(allSkills),
+		"stars":  stars,
+		"skills": allSkills,
+		"count":  len(allSkills),
 	})
 }
 
@@ -306,10 +306,10 @@ func (s *Server) handleExecute(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":  "ok",
-		"time":    time.Now().Format(time.RFC3339),
-		"version": "0.4.0",
-		"phase":   "4",
+		"status":     "ok",
+		"time":       time.Now().Format(time.RFC3339),
+		"version":    "0.4.0",
+		"phase":      "4",
 		"ws_clients": s.hub.ClientCount(),
 		"features": []string{
 			"json-rpc-sdk",
