@@ -201,11 +201,13 @@ func (s *Server) handleTaskList(w http.ResponseWriter, r *http.Request) {
 	running := s.store.ListRunning()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 		"total":   len(tasks),
 		"running": len(running),
 		"tasks":   tasks,
-	})
+	}); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleSnapshot 执行快照（可视化数据）
@@ -225,7 +227,9 @@ func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
 	task, ok := s.store.GetTask(taskID)
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "task not found"})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": "task not found"}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
@@ -240,7 +244,9 @@ func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
 	snapshot := model.BuildSnapshot(task, plan, nil)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(snapshot)
+	if encodeErr := json.NewEncoder(w).Encode(snapshot); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // ============================================================
