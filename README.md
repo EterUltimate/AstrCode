@@ -477,11 +477,24 @@ Dashboard 会自动重连（最多 5 次）。也可以手动刷新页面。
 
 ## 许可证
 
-MIT License
+本项目采用 **GNU Affero General Public License v3.0 (AGPL-3.0)** 开源许可证。
 
-Copyright (c) 2026 EterUltimate
+### 主要条款
 
-详见 [LICENSE](LICENSE) 文件。
+- ✅ 允许自由使用、修改和分发
+- ✅ 允许商业使用
+- ⚠️ **网络使用也必须开源**（AGPL 核心要求）
+- ⚠️ 修改后的代码必须以相同许可证开源
+- ⚠️ 必须保留版权声明和许可证文本
+
+详见 [LICENSE](LICENSE) 文件完整条款。
+
+### 为什么选择 AGPL-3.0？
+
+AstrCode 作为网络服务编排引擎，AGPL-3.0 确保：
+1. 通过网络提供服务时也必须公开源代码
+2. 防止闭源商业滥用
+3. 促进社区协作和改进共享
 
 ---
 
