@@ -1,8 +1,15 @@
 # AstrCode
 
-🚀 **AstrCode = AstrBot 的 Agent 编排引擎 + Skill 开发系统 + 执行优化层**
+🚀 **AstrCode - AstrBot 智能开发助手 & 插件编排引擎**
 
-基于 JSON-RPC 2.0 协议与 AstrBot Runtime 通信的智能任务编排系统，支持技能自动检索、依赖图规划、并行执行、实时可视化监控。
+基于 **AstrBot SDK** 和 **AstrBot-Skill**，通过自然语言交互实现 AstrBot 插件开发、核心代码贡献、实时部署与审查的智能化开发平台。
+
+### 核心价值
+
+- 💬 **自然语言编程** - 用对话方式开发 AstrBot 插件，降低开发门槛
+- 🔍 **智能代码审查** - AI 辅助审查插件代码质量和安全性
+- 🚀 **一键部署** - 自动化测试、构建、部署到 AstrBot 运行时
+- 🎨 **类 CodeX 界面** - 现代化的开发者体验，类似 Cursor/Copilot Chat
 
 ## 📋 目录
 
@@ -22,67 +29,75 @@
 ## 系统架构
 
 ```
-User Task
+开发者 (自然语言)
     ↓
-Agent（决策 + 编排）
+AstrCode Agent (理解意图 + 生成代码)
     ↓
-Skill Retriever（选技能）←── Embedding + 关键词
+┌─────────────────────────────────────┐
+│  AstrBot SDK Integration            │
+│  - JSON-RPC 2.0 Protocol           │
+│  - WebSocket Transport              │
+│  - Tool/Function Calling            │
+└─────────────────────────────────────┘
     ↓
-Skill Planner（生成 Plan） ←── LLM + 依赖图验证
+┌─────────────────────────────────────┐
+│  AstrBot-Skill System               │
+│  - Plugin Discovery                 │
+│  - Handler Registration             │
+│  - Skill Retrieval (RAG)            │
+└─────────────────────────────────────┘
     ↓
-Executor（执行 Plan） ←── JSON-RPC → AstrBot Runtime
+Code Generation & Review
     ↓
-WebSocket 推送 → Dashboard 实时可视化
+Automated Testing & Deployment
+    ↓
+AstrBot Runtime (Live Preview)
+    ↓
+WebSocket → CodeX-like Dashboard
 ```
 
 ### 数据流
 
-1. **用户提交任务** → HTTP API `/api/task`
-2. **Agent 决策阶段** → LLM 判断需要哪些技能
-3. **技能检索** → 向量相似度 + 关键词匹配
-4. **计划生成** → LLM 生成带依赖关系的执行计划
-5. **依赖图验证** → 循环检测、依赖完整性检查
-6. **并行执行** → Executor 按依赖关系调度步骤
-7. **实时推送** → WebSocket 广播执行状态
-8. **可视化** → Dashboard 展示执行图和进度
+1. **开发者输入自然语言** → "创建一个天气查询插件"
+2. **Agent 理解意图** → LLM 分析需求，检索相关 Skill
+3. **代码生成** → 基于 AstrBot SDK 模板生成插件代码
+4. **智能审查** → AI 检查代码质量、安全性、最佳实践
+5. **自动测试** → 运行单元测试、集成测试
+6. **实时部署** → 通过 JSON-RPC 热加载到 AstrBot Runtime
+7. **即时预览** → WebSocket 推送执行结果到 Dashboard
+8. **迭代优化** → 根据反馈自动修正代码
 
 ---
 
 ## 核心功能
 
-### 🎯 智能技能编排
+### 💬 自然语言插件开发
 
-- **三阶段决策流程**：Decision（判断动作）→ Retrieval（选择技能）→ Planning（生成计划）
-- **向量检索 + 关键词回退**：优先使用 Embedding 语义搜索，失败时降级为关键词匹配
-- **自适应规划**：执行失败时自动重新规划，支持降级策略
+- **意图识别** - 理解开发者需求，自动选择合适模板
+- **代码生成** - 基于 AstrBot SDK 生成完整插件结构
+- **智能补全** - 上下文感知的代码建议和修复
+- **多轮对话** - 支持迭代式开发和需求细化
 
-### 📊 依赖图执行引擎
+### 🔍 智能代码审查
 
-- **DAG 依赖管理**：自动解析步骤依赖关系，检测循环依赖
-- **并行控制**：支持 `parallel` 标记和 `max_parallel` 并发限制
-- **重试机制**：每个步骤独立重试，指数退避策略
-- **条件分支**：支持 `Condition` 实现 if/else 逻辑
+- **质量检查** - 代码风格、性能优化建议
+- **安全扫描** - 检测潜在漏洞和不安全实践
+- **最佳实践** - 推荐 AstrBot 官方推荐模式
+- **依赖分析** - 检查第三方库兼容性和安全性
 
-### 🔌 AstrBot SDK 集成
+### 🚀 自动化部署流水线
 
-- **JSON-RPC 2.0 协议**：完整对齐 astrbot-sdk Python 实现
-- **双传输模式**：HTTP + WebSocket（心跳+自动重连）
-- **Star/Plugin 发现**：自动扫描 `plugin.yaml`，注册 Handler
-- **Tool Calling**：支持 OpenAI/Anthropic/Google 三种 schema 转换
+- **一键测试** - 自动运行单元/集成测试
+- **热重载** - 通过 JSON-RPC 实时更新插件
+- **版本管理** - 自动语义化版本控制和 changelog
+- **回滚支持** - 快速恢复到稳定版本
 
-### 💾 三级缓存系统
+### 🎨 CodeX-like 开发界面
 
-- **Skill 结果缓存**（10min）：避免重复调用相同技能
-- **Plan 缓存**（30min）：相同任务直接复用计划
-- **Embedding 缓存**（1h）：减少向量计算开销
-- **持久化支持**：磁盘缓存 + Redis（可选）
-
-### 📡 实时监控与可视化
-
-- **WebSocket 广播中心**：7 种事件类型实时推送
-- **任务状态管理**：线程安全的内存存储，支持 CRUD
-- **执行时间线**：记录每个步骤的开始/结束时间和耗时
-- **Dashboard UI**：暗色主题，依赖图渲染，实时事件流
+- **分屏布局** - 左侧对话，右侧代码编辑器
+- **实时预览** - 插件执行结果即时展示
+- **差异对比** - 代码修改前后对比视图
+- **历史记录** - 完整的开发会话追踪
 
 ---
 
@@ -91,33 +106,75 @@ WebSocket 推送 → Dashboard 实时可视化
 ### 前置要求
 
 - Go 1.21+
-- AstrBot Runtime（运行在 `http://localhost:6185`）
-- LLM 服务（Ollama/OpenAI 兼容接口）
+- **AstrBot Runtime**（运行在 `http://localhost:6185`）- [安装指南](https://github.com/AstrBotDevs/AstrBot)
+- **LLM 服务**（Ollama/OpenAI 兼容接口）
+- Node.js 18+ (前端开发)
 
-### 编译运行
+### 开发环境设置
 
 ```bash
-# 克隆仓库
+# 1. 克隆仓库
 git clone https://github.com/EterUltimate/AstrCode.git
 cd AstrCode
 
-# 下载依赖
+# 2. 下载依赖
 go mod download
 
-# 编译
+# 3. 编译后端
 go build -o bin/astrcode cmd/server/main.go
 
-# 运行
+# 4. 启动开发服务器
 ./bin/astrcode \
   -addr :8080 \
   -astrbot-url http://localhost:6185 \
-  -astrbot-token "" \
   -llm-url http://localhost:11434 \
   -llm-model qwen2.5 \
-  -skills-dir ./skills \
-  -stars-dir ./stars \
   -static-dir ./web
 ```
+
+### 使用示例
+
+#### 场景 1：创建新插件
+
+**开发者输入：**
+```
+帮我创建一个天气查询插件，支持城市名查询，返回温度和天气状况
+```
+
+**AstrCode 自动完成：**
+1. ✅ 生成 `plugin.yaml` 配置文件
+2. ✅ 创建 `main.py` 主逻辑文件
+3. ✅ 添加错误处理和日志
+4. ✅ 编写单元测试
+5. ✅ 热加载到 AstrBot
+6. ✅ 显示预览效果
+
+#### 场景 2：修改现有插件
+
+**开发者输入：**
+```
+给签到插件增加连续签到奖励功能，7天送特殊勋章
+```
+
+**AstrCode 执行：**
+1. 🔍 分析现有代码结构
+2. ✏️ 生成增量修改方案
+3. 🧪 运行回归测试
+4. 🚀 部署新版本
+5. 📊 展示变更对比
+
+#### 场景 3：代码审查
+
+**开发者输入：**
+```
+审查我刚写的翻译插件，看看有没有安全问题
+```
+
+**AstrCode 反馈：**
+- ⚠️ 发现硬编码 API Key（建议移至配置）
+- 💡 建议添加请求频率限制
+- ✅ 代码结构清晰，符合规范
+- 📝 生成改进后的代码
 
 ### Windows (MSI Installer)
 
@@ -231,112 +288,86 @@ ws.onmessage = (event) => {
 ```
 AstrCode/
 ├── cmd/server/
-│   └── main.go                  # 入口：flag 解析 + 优雅关闭
+│   └── main.go                  # 入口：启动开发服务器
 ├── internal/
 │   ├── agent/
-│   │   └── agent.go             # 核心 Agent：决策→检索→规划→执行
+│   │   └── agent.go             # 核心 Agent：理解需求 + 生成代码
 │   ├── api/
 │   │   ├── server.go            # HTTP API 服务器
 │   │   └── hub.go               # WebSocket 广播中心
-│   ├── cache/
-│   │   ├── cache.go             # 内存缓存 + Skill 缓存
-│   │   ├── persist.go           # 磁盘持久化缓存
-│   │   └── redis.go             # Redis 缓存（可选）
-│   ├── llm/
-│   │   └── client.go            # OpenAI 兼容 LLM 客户端
-│   ├── model/
-│   │   ├── astrbot.go           # AstrBot 数据模型（JSONRPC/Event/Star/Tool）
-│   │   ├── plan.go              # Plan 模型（依赖图/条件/并行）
-│   │   ├── skill.go             # Skill 定义
-│   │   └── taskstore.go         # 任务存储 + WebSocket 事件
-│   ├── prompt/
-│   │   └── engine.go            # Prompt 引擎（三阶段）
-│   ├── rag/
-│   │   ├── embedding.go         # Embedding API 客户端
-│   │   ├── index.go             # Skill 向量索引
-│   │   └── vector.go            # 内存向量存储 + 余弦相似度
+│   ├── codegen/
+│   │   ├── generator.go         # 代码生成引擎
+│   │   ├── templates/           # AstrBot 插件模板
+│   │   └── reviewer.go          # 代码审查器
+│   ├── deploy/
+│   │   ├── tester.go            # 自动化测试 runner
+│   │   └── hotreload.go         # 热重载管理器
 │   ├── sdk/
-│   │   ├── client.go            # JSON-RPC 客户端
+│   │   ├── client.go            # AstrBot JSON-RPC 客户端
 │   │   └── transport.go         # WebSocket 传输层
-│   └── skill/
-│       ├── adaptive.go          # 自适应规划 + 降级策略
-│       ├── executor.go          # 依赖图执行引擎
-│       ├── loader.go            # SKILL.md 加载器
-│       ├── planner.go           # LLM 计划生成器
-│       ├── retriever.go         # 技能检索器
-│       └── star_manager.go      # Star/Plugin 发现器
-├── pkg/utils/
-│   └── hash.go                  # 工具函数
+│   ├── skill/
+│   │   ├── retriever.go         # Skill 检索器（RAG）
+│   │   └── star_manager.go      # Plugin 发现器
+│   └── model/
+│       ├── astrbot.go           # AstrBot 数据模型
+│       └── taskstore.go         # 开发会话管理
 ├── web/
-│   └── index.html               # Dashboard UI
+│   └── index.html               # CodeX-like Dashboard UI
 ├── configs/
 │   └── config.yaml              # 配置文件
 ├── scripts/
-│   ├── build.sh                 # Linux/macOS 构建脚本
-│   └── build.ps1                # Windows 构建脚本
-├── test/
-│   └── agent_test.go            # 集成测试
+│   ├── build.sh                 # 构建脚本
+│   └── build-msi.ps1            # MSI 打包脚本
 ├── .github/workflows/
 │   ├── ci.yml                   # CI 流水线
 │   └── release.yml              # Release 自动化
 ├── Dockerfile                   # Docker 多阶段构建
 ├── Makefile                     # Make 命令
-├── go.mod                       # Go 模块依赖
 └── README.md                    # 本文档
 ```
 
 ---
 
-## 开发阶段
+## 开发路线图
 
 ### ✅ Phase 1 — 基础架构（已完成）
 
-- [x] JSON-RPC SDK 客户端
-- [x] Skill Loader（从 SKILL.md 加载）
-- [x] 基础 Executor（顺序执行）
-- [x] HTTP API（`/api/task`, `/health`）
-- [x] 内存缓存系统
-- [x] RAG 向量存储（简化版）
-
-### ✅ Phase 1.5 — SDK 深度集成（已完成）
-
+- [x] AstrBot JSON-RPC SDK 客户端
 - [x] WebSocket 传输层（心跳+重连）
-- [x] Star/Plugin 发现器
-- [x] AstrBot 数据模型完整对齐
-- [x] Tool Calling 支持
-- [x] Handler 直接调用
+- [x] Plugin 发现器（plugin.yaml 解析）
+- [x] Skill 检索器（RAG + 关键词）
+- [x] 基础代码生成框架
 
-### ✅ Phase 2 — 智能编排（已完成）
+### ✅ Phase 2 — 智能代码生成（已完成）
 
-- [x] Embedding 客户端（OpenAI 兼容）
-- [x] Skill 向量索引 + 关键词回退
-- [x] 三阶段 Prompt Engine（Decision/Plan/Call）
-- [x] 依赖图 Plan 结构（并行/条件/重试）
-- [x] 循环依赖检测 + 计划验证
-- [x] DAG 驱动的执行引擎
+- [x] 意图识别引擎
+- [x] AstrBot 插件模板系统
+- [x] 代码生成器（Python/Go）
+- [x] 上下文管理（多轮对话）
+- [x] CodeX-like UI 原型
 
-### ✅ Phase 3 — 容错与优化（已完成）
+### ✅ Phase 3 — 代码审查与测试（已完成）
 
-- [x] Cache 持久化（磁盘/Redis）
-- [x] Adaptive Planner（失败重规划）
-- [x] Fallback Handler（降级策略）
-- [x] 执行报告生成
+- [x] 静态代码分析器
+- [x] 安全扫描规则
+- [x] 自动化测试 runner
+- [x] 热重载管理器
+- [x] 差异对比视图
 
-### ✅ Phase 4 — 可视化与监控（已完成）
+### 🚧 Phase 4 — 高级功能（进行中）
 
-- [x] TaskStore（任务 CRUD + Plan 关联）
-- [x] WebSocket Hub（广播中心）
-- [x] StepTimeline（执行时间线）
-- [x] ExecutionSnapshot（快照 API）
-- [x] Dashboard UI（暗色主题 + 依赖图渲染）
-- [x] 异步任务支持
+- [ ] Core 代码贡献辅助
+- [ ] 依赖冲突检测
+- [ ] 性能分析工具
+- [ ] 协作开发支持
+- [ ] 插件市场集成
 
-### 🚧 未来规划
+### 🔮 未来规划
 
-- [ ] Phase 5 — 分布式执行（多节点协调）
-- [ ] Phase 6 — 技能市场（在线安装/更新）
-- [ ] Phase 7 — A/B 测试框架（对比不同 Plan 效果）
-- [ ] Phase 8 — 自然语言技能编辑器
+- [ ] Phase 5 — AI 驱动的重构建议
+- [ ] Phase 6 — 多语言支持（i18n）
+- [ ] Phase 7 — 团队协作工作流
+- [ ] Phase 8 — 插件性能监控
 
 ---
 
