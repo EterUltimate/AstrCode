@@ -345,9 +345,9 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 			"ws-broadcast",
 			"execution-snapshot",
 			"async-task",
-			"code-generation",    // NEW: Phase 2
-			"code-review",        // NEW: Phase 2
-			"hot-deploy",         // NEW: Phase 2
+			"code-generation", // NEW: Phase 2
+			"code-review",     // NEW: Phase 2
+			"hot-deploy",      // NEW: Phase 2
 		},
 	})
 }
@@ -377,8 +377,8 @@ func (s *Server) handleGeneratePlugin(w http.ResponseWriter, r *http.Request) {
 	// 这里返回占位响应
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "ok",
-		"message": "Plugin generation endpoint ready",
+		"status":      "ok",
+		"message":     "Plugin generation endpoint ready",
 		"requirement": req.Requirement,
 	})
 }
@@ -403,8 +403,8 @@ func (s *Server) handleReviewCode(w http.ResponseWriter, r *http.Request) {
 	// TODO: 调用 codegen.Reviewer
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "ok",
-		"message": "Code review endpoint ready",
+		"status":      "ok",
+		"message":     "Code review endpoint ready",
 		"files_count": len(req.Files),
 	})
 }
@@ -430,8 +430,8 @@ func (s *Server) handleDeployPlugin(w http.ResponseWriter, r *http.Request) {
 	// TODO: 调用 deploy.Manager
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "ok",
-		"message": "Plugin deployment endpoint ready",
+		"status":      "ok",
+		"message":     "Plugin deployment endpoint ready",
 		"plugin_name": req.PluginName,
 	})
 }

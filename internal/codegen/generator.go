@@ -39,11 +39,11 @@ func NewGenerator(llmClient *llm.Client) *Generator {
 
 // PluginSpec 插件规格定义
 type PluginSpec struct {
-	Name        string            // 插件名称
-	Description string            // 功能描述
-	Handlers    []HandlerSpec     // 处理器列表
-	Config      map[string]string // 配置项
-	Dependencies []string         // 依赖库
+	Name         string            // 插件名称
+	Description  string            // 功能描述
+	Handlers     []HandlerSpec     // 处理器列表
+	Config       map[string]string // 配置项
+	Dependencies []string          // 依赖库
 }
 
 // HandlerSpec 处理器规格
@@ -56,11 +56,11 @@ type HandlerSpec struct {
 
 // GeneratedPlugin 生成的插件
 type GeneratedPlugin struct {
-	Files       map[string]string // 文件名 -> 内容
-	PluginYaml  string
-	MainPy      string
-	Tests       map[string]string
-	Spec        *PluginSpec
+	Files      map[string]string // 文件名 -> 内容
+	PluginYaml string
+	MainPy     string
+	Tests      map[string]string
+	Spec       *PluginSpec
 }
 
 // GeneratePlugin 根据自然语言需求生成完整插件
@@ -187,7 +187,7 @@ class %sPlugin(Star):
         self.config = config
         logger.info("%s plugin initialized")
 
-`, spec.Description, spec.Name, spec.Description, 
+`, spec.Description, spec.Name, spec.Description,
 		capitalize(spec.Name), spec.Name)
 
 	// 生成处理器

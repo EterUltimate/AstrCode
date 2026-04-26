@@ -39,10 +39,10 @@ func NewManager(sdkClient *sdk.AstrBotClient) *Manager {
 
 // DeployResult 部署结果
 type DeployResult struct {
-	Success   bool
-	Message   string
-	Version   string
-	Rollback  func() error // 回滚函数
+	Success  bool
+	Message  string
+	Version  string
+	Rollback func() error // 回滚函数
 }
 
 // DeployPlugin 部署插件到 AstrBot Runtime
@@ -95,7 +95,7 @@ func (m *Manager) DeployPlugin(ctx context.Context, pluginName string, files map
 func (m *Manager) hotReload(ctx context.Context, pluginName string, files map[string]string) error {
 	// 使用 AstrBot SDK 的热重载 API
 	// 这里简化实现，实际需要调用 JSON-RPC 方法
-	
+
 	// 示例：astrbot.plugin.reload(plugin_name, files)
 	resp, err := m.sdkClient.CallRPC(ctx, "astrbot.plugin.reload", map[string]interface{}{
 		"plugin_name": pluginName,

@@ -39,10 +39,10 @@ func NewReviewer(llmClient *llm.Client) *Reviewer {
 
 // ReviewResult 审查结果
 type ReviewResult struct {
-	Issues    []Issue     // 发现的问题
-	Score     int         // 代码评分 (0-100)
-	Suggestions []string  // 改进建议
-	Passed    bool        // 是否通过审查
+	Issues      []Issue  // 发现的问题
+	Score       int      // 代码评分 (0-100)
+	Suggestions []string // 改进建议
+	Passed      bool     // 是否通过审查
 }
 
 // Issue 问题项
@@ -57,10 +57,10 @@ type Issue struct {
 // Review 审查插件代码
 func (r *Reviewer) Review(ctx context.Context, pluginFiles map[string]string) (*ReviewResult, error) {
 	result := &ReviewResult{
-		Issues:    []Issue{},
-		Score:     100,
+		Issues:      []Issue{},
+		Score:       100,
 		Suggestions: []string{},
-		Passed:    true,
+		Passed:      true,
 	}
 
 	// 1. 静态规则检查
@@ -84,15 +84,15 @@ func (r *Reviewer) Review(ctx context.Context, pluginFiles map[string]string) (*
 func (r *Reviewer) staticCheck(files map[string]string, result *ReviewResult) {
 	for filename, content := range files {
 		lines := strings.Split(content, "\n")
-		
+
 		for i, line := range lines {
 			lineNum := i + 1
 
 			// 检查硬编码密钥
-			if strings.Contains(strings.ToLower(line), "api_key") && 
-			   strings.Contains(line, "=") &&
-			   !strings.Contains(line, "config") &&
-			   !strings.Contains(line, "os.environ") {
+			if strings.Contains(strings.ToLower(line), "api_key") &&
+				strings.Contains(line, "=") &&
+				!strings.Contains(line, "config") &&
+				!strings.Contains(line, "os.environ") {
 				result.Issues = append(result.Issues, Issue{
 					Severity: "critical",
 					File:     filename,
