@@ -264,11 +264,13 @@ func (s *Server) handleSkills(w http.ResponseWriter, r *http.Request) {
 	allSkills := s.agent.GetAllSkills()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 		"stars":  stars,
 		"skills": allSkills,
 		"count":  len(allSkills),
-	})
+	}); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handlePlan 生成计划（不执行）
@@ -292,12 +294,16 @@ func (s *Server) handlePlan(w http.ResponseWriter, r *http.Request) {
 	plan, err := s.agent.GeneratePlan(ctx, req.Task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": err.Error()}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(plan)
+	if encodeErr := json.NewEncoder(w).Encode(plan); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleExecute 直接执行步骤
@@ -333,18 +339,22 @@ func (s *Server) handleExecute(w http.ResponseWriter, r *http.Request) {
 	result, err := s.agent.ProcessEvent(ctx, req.Handler, req.Event)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": err.Error()}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	if encodeErr := json.NewEncoder(w).Encode(result); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleHealth 健康检查
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":     "ok",
 		"time":       time.Now().Format(time.RFC3339),
 		"version":    "0.4.0",
@@ -367,7 +377,9 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 			"code-review",     // NEW: Phase 2
 			"hot-deploy",      // NEW: Phase 2
 		},
-	})
+	}); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // ============================================================
@@ -387,18 +399,22 @@ func (s *Server) handleGeneratePlugin(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
 	// TODO: 调用 codegen.Generator
 	// 这里返回占位响应
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":      "ok",
 		"message":     "Plugin generation endpoint ready",
 		"requirement": req.Requirement,
-	})
+	}); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleReviewCode 处理代码审查请求
@@ -414,17 +430,21 @@ func (s *Server) handleReviewCode(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
 	// TODO: 调用 codegen.Reviewer
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":      "ok",
 		"message":     "Code review endpoint ready",
 		"files_count": len(req.Files),
-	})
+	}); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
 
 // handleDeployPlugin 处理插件部署请求
@@ -441,15 +461,19 @@ func (s *Server) handleDeployPlugin(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
 	// TODO: 调用 deploy.Manager
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":      "ok",
 		"message":     "Plugin deployment endpoint ready",
 		"plugin_name": req.PluginName,
-	})
+	}); encodeErr != nil {
+		_ = encodeErr // TODO: Add proper logging
+	}
 }
