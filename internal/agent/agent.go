@@ -30,7 +30,8 @@ import (
 	"github.com/EterUltimate/astrcode/internal/skill"
 )
 
-// Agent AstrCode 核心 Agent = Skill 编排引擎
+// Agent AstrCode 核心 Agent = AstrBot 智能开发助手
+// 职责：理解开发者意图 → 检索相关 Skill → 生成插件代码 → 审查与部署
 type Agent struct {
 	retriever    *skill.Retriever
 	planner      *skill.Planner

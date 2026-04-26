@@ -1,0 +1,15 @@
+name: {{.Name}}
+version: {{.Version}}
+description: {{.Description}}
+author: {{.Author}}
+handlers:
+{{- range .Handlers}}
+  - type: {{.Type}}
+    name: {{.Name}}
+{{- end}}
+{{- if .Dependencies}}
+dependencies:
+{{- range .Dependencies}}
+  - {{.}}
+{{- end}}
+{{- end}}

@@ -49,6 +49,11 @@ func NewServer(ag *agent.Agent, hub *Hub, store *model.TaskStore, addr string) *
 	mux.HandleFunc("/api/task", s.handleTask)
 	mux.HandleFunc("/api/task/", s.handleTaskStatus)
 
+	// 代码生成 API (Phase 2: Dev Assistant)
+	mux.HandleFunc("/api/generate", s.handleGeneratePlugin)
+	mux.HandleFunc("/api/review", s.handleReviewCode)
+	mux.HandleFunc("/api/deploy", s.handleDeployPlugin)
+
 	// 技能/计划/执行 API
 	mux.HandleFunc("/api/skills", s.handleSkills)
 	mux.HandleFunc("/api/plan", s.handlePlan)
@@ -340,6 +345,93 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 			"ws-broadcast",
 			"execution-snapshot",
 			"async-task",
+			"code-generation",    // NEW: Phase 2
+			"code-review",        // NEW: Phase 2
+			"hot-deploy",         // NEW: Phase 2
 		},
+	})
+}
+
+// ============================================================
+// Phase 2: Dev Assistant API Handlers
+// ============================================================
+
+// handleGeneratePlugin 处理插件生成请求
+func (s *Server) handleGeneratePlugin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Requirement string `json:"requirement"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	// TODO: 调用 codegen.Generator
+	// 这里返回占位响应
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "ok",
+		"message": "Plugin generation endpoint ready",
+		"requirement": req.Requirement,
+	})
+}
+
+// handleReviewCode 处理代码审查请求
+func (s *Server) handleReviewCode(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Files map[string]string `json:"files"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	// TODO: 调用 codegen.Reviewer
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "ok",
+		"message": "Code review endpoint ready",
+		"files_count": len(req.Files),
+	})
+}
+
+// handleDeployPlugin 处理插件部署请求
+func (s *Server) handleDeployPlugin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		PluginName string            `json:"plugin_name"`
+		Files      map[string]string `json:"files"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	// TODO: 调用 deploy.Manager
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "ok",
+		"message": "Plugin deployment endpoint ready",
+		"plugin_name": req.PluginName,
 	})
 }
