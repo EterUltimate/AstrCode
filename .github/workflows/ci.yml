@@ -26,20 +26,9 @@ jobs:
 
       - name: Download dependencies
         run: |
-          echo "=== Go version ==="
-          go version
-          echo "=== Module path ==="
-          go list -m
-          echo "=== Running go mod tidy ==="
           go mod tidy
-          echo "=== Running go mod download ==="
           go mod download
-          echo "=== Running go mod verify ==="
           go mod verify
-          echo "=== Listing internal/cache ==="
-          ls -la internal/cache/
-          echo "=== Checking cache package ==="
-          go list ./internal/cache
 
       - name: Check formatting
         run: |
