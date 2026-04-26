@@ -24,9 +24,10 @@ vendor/
 .DS_Store
 Thumbs.db
 
-# Cache
+# Cache (runtime data, not source code)
 cache/
 *.cache
+!internal/cache/
 
 # Config with secrets
 configs/config.local.yaml
