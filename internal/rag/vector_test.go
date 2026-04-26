@@ -52,7 +52,9 @@ func TestMemoryVectorStore(t *testing.T) {
 	}
 
 	// Delete
-	store.Delete("v1")
+	if err := store.Delete("v1"); err != nil {
+		t.Fatal(err)
+	}
 	results, _ = store.Search(query, 2)
 	if len(results) != 2 {
 		t.Errorf("expected 2 results after delete, got %d", len(results))

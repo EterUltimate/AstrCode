@@ -76,7 +76,10 @@ func (h *Hub) Run() {
 			}
 			h.mu.RLock()
 			for conn := range h.clients {
-				conn.WriteMessage(websocket.TextMessage, data)
+				if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+					// Client disconnected, will be cleaned up
+					_ = err // TODO: Add proper logging
+				}
 			}
 			h.mu.RUnlock()
 		}
@@ -108,11 +111,13 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	h.register <- conn
 
 	// 发送连接确认
-	conn.WriteJSON(map[string]interface{}{
+	if err := conn.WriteJSON(map[string]interface{}{
 		"type":      "connected",
 		"timestamp": time.Now().UnixMilli(),
 		"message":   "AstrCode execution stream",
-	})
+	}); err != nil {
+		_ = err // TODO: Add proper logging
+	}
 
 	// 读循环（处理断开）
 	defer func() {

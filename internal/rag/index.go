@@ -19,7 +19,6 @@ package rag
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/EterUltimate/astrcode/internal/model"
 )
@@ -28,7 +27,6 @@ import (
 type SkillIndex struct {
 	store     VectorStore
 	embedding *EmbeddingClient
-	mu        sync.RWMutex
 }
 
 // NewSkillIndex 创建 Skill 索引

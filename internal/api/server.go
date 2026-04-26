@@ -113,7 +113,9 @@ func (s *Server) handleTask(w http.ResponseWriter, r *http.Request) {
 		task, err := s.agent.CreateTask(req.Task)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			if encodeErr := json.NewEncoder(w).Encode(map[string]string{"error": err.Error()}); encodeErr != nil {
+				_ = encodeErr // TODO: Add proper logging
+			}
 			return
 		}
 
@@ -127,11 +129,13 @@ func (s *Server) handleTask(w http.ResponseWriter, r *http.Request) {
 		}()
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 			"task_id": task.ID,
 			"status":  task.Status,
 			"ws":      "/ws",
-		})
+		}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 
@@ -142,10 +146,12 @@ func (s *Server) handleTask(w http.ResponseWriter, r *http.Request) {
 	result, err := s.agent.ProcessTask(ctx, req.Task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{
 			"error": err.Error(),
 			"task":  result,
-		})
+		}); encodeErr != nil {
+			_ = encodeErr // TODO: Add proper logging
+		}
 		return
 	}
 

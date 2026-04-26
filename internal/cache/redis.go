@@ -72,14 +72,19 @@ func (c *RedisCache) Set(key string, value interface{}, ttl time.Duration) {
 		return
 	}
 
-	c.client.Set(ctx, c.prefix+key, string(data), ttl)
+	if err := c.client.Set(ctx, c.prefix+key, string(data), ttl); err != nil {
+		// Log error but don't fail the cache operation
+		_ = err // TODO: Add proper logging
+	}
 }
 
 // Delete 删除缓存
 func (c *RedisCache) Delete(key string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	c.client.Delete(ctx, c.prefix+key)
+	if err := c.client.Delete(ctx, c.prefix+key); err != nil {
+		_ = err // TODO: Add proper logging
+	}
 }
 
 // Clear 清空缓存（Redis 中按前缀删除）

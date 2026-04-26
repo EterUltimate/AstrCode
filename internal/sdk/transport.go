@@ -183,7 +183,10 @@ func (t *WebSocketTransport) heartbeatLoop() {
 		case <-ticker.C:
 			t.mu.Lock()
 			if t.conn != nil {
-				t.conn.WriteMessage(websocket.PingMessage, nil)
+				if err := t.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					// Ping failed, connection might be dead
+					_ = err // TODO: Add proper logging or reconnect logic
+				}
 			}
 			t.mu.Unlock()
 		}
