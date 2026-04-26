@@ -82,3 +82,7 @@ build-all:
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build $(LDFLAGS) -o dist/astrcode-darwin-amd64 cmd/server/main.go
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build $(LDFLAGS) -o dist/astrcode-darwin-arm64 cmd/server/main.go
 	@echo "✅ All platforms built in dist/"
+
+# Windows MSI 打包
+msi:
+	powershell -ExecutionPolicy Bypass -File scripts/build-msi.ps1 -Version $(VERSION)

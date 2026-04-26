@@ -119,9 +119,20 @@ go build -o bin/astrcode cmd/server/main.go
   -static-dir ./web
 ```
 
-### Docker 运行
+### Windows (MSI Installer)
 
-```bash
+1. 下载 `AstrCode-0.4.0-x64.msi` 从 [Releases](https://github.com/EterUltimate/AstrCode/releases)
+2. 双击运行安装程序
+3. 选择安装路径（默认：`C:\Program Files\AstrCode`）
+4. 完成安装后，从开始菜单启动或运行：
+   ```batch
+   "C:\Program Files\AstrCode\bin\start.bat"
+   ```
+5. 浏览器打开 `http://localhost:8080`
+
+**卸载**：通过控制面板 → 程序和功能 → 卸载 AstrCode
+
+### Docker 运行
 docker build -t astrcode:latest .
 docker run -p 8080:8080 astrcode:latest
 ```

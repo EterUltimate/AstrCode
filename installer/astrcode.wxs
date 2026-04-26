@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+AstrCode - Agent orchestration engine for AstrBot
+Copyright (C) 2026 EterUltimate
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- Product definition -->
+  <Product Id="*" 
+           Name="AstrCode" 
+           Language="1033" 
+           Version="$(var.ProductVersion)" 
+           Manufacturer="EterUltimate" 
+           UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+    
+    <!-- Package settings -->
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Description="AstrCode - Agent Orchestration Engine for AstrBot"
+             Manufacturer="EterUltimate" />
+    
+    <!-- Major upgrade support -->
+    <MajorUpgrade AllowDowngrades="no" 
+                  DowngradeErrorMessage="A newer version of AstrCode is already installed." />
+    
+    <!-- Media settings -->
+    <MediaTemplate EmbedCab="yes" />
+    
+    <!-- Feature tree -->
+    <Feature Id="ProductFeature" 
+             Title="AstrCode" 
+             Level="1"
+             Description="Complete installation of AstrCode Agent Orchestration Engine"
+             Display="expand"
+             ConfigurableDirectory="INSTALLFOLDER">
+      
+      <!-- Main application files -->
+      <ComponentGroupRef Id="ProductComponents" />
+      
+      <!-- Start menu shortcuts -->
+      <ComponentRef Id="ApplicationShortcut" />
+      
+      <!-- Environment variables -->
+      <ComponentRef Id="EnvironmentVariables" />
+      
+      <!-- Firewall exception -->
+      <ComponentRef Id="FirewallException" />
+    </Feature>
+    
+    <!-- UI configuration -->
+    <UIRef Id="WixUI_InstallDir" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+    
+    <!-- Custom properties -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="ASTRCODE_PORT" Value="8080" />
+    <Property Id="ASTRBOT_URL" Value="http://localhost:6185" />
+    
+    <!-- Icons and banners -->
+    <Icon Id="AstrCodeIcon.ico" SourceFile="installer\icons\astrcode.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AstrCodeIcon.ico" />
+    <WixVariable Id="WixUILicenseRtf" Value="installer\license\LICENSE.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="installer\bitmaps\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="installer\bitmaps\dialog.bmp" />
+  </Product>
+  
+  <!-- Directory structure -->
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="AstrCode">
+          <Directory Id="BINDIR" Name="bin" />
+          <Directory Id="CONFIGDIR" Name="configs" />
+          <Directory Id="WEBDIR" Name="web" />
+          <Directory Id="SKILLSDIR" Name="skills" />
+          <Directory Id="STARDIR" Name="stars" />
+          <Directory Id="CACHEDIR" Name="cache" />
+          <Directory Id="LOGDIR" Name="logs" />
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="AstrCode" />
+      </Directory>
+    </Directory>
+  </Fragment>
+  
+  <!-- Application components -->
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      
+      <!-- Main executable -->
+      <Component Id="MainExecutable" Guid="*">
+        <File Id="AstrCodeExe" 
+              Name="astrcode.exe" 
+              Source="bin\astrcode.exe" 
+              KeyPath="yes"
+              Checksum="yes">
+          <!-- File association for .skill files -->
+          <ProgId Id="AstrCode.SkillFile" 
+                  Description="AstrCode Skill Definition" 
+                  Icon="AstrCodeIcon.ico">
+            <Extension Id="skill" ContentType="text/markdown">
+              <Verb Id="open" 
+                    Command="Open" 
+                    TargetFile="AstrCodeExe" 
+                    Argument="--skill &quot;%1&quot;" />
+            </Extension>
+          </ProgId>
+        </File>
+        
+        <!-- Service registration (optional) -->
+        <ServiceInstall Id="AstrCodeService"
+                        Type="ownProcess"
+                        Vital="yes"
+                        Name="AstrCode"
+                        DisplayName="AstrCode Agent Engine"
+                        Description="AstrCode - Agent Orchestration Engine for AstrBot"
+                        Start="demand"
+                        Account="LocalSystem"
+                        ErrorControl="normal"
+                        Interactive="no">
+          <ServiceDependency Id="Tcpip" />
+        </ServiceInstall>
+        
+        <ServiceControl Id="StartService"
+                        Name="AstrCode"
+                        Start="install"
+                        Stop="both"
+                        Remove="uninstall"
+                        Wait="yes" />
+      </Component>
+      
+      <!-- Configuration files -->
+      <Component Id="ConfigFiles" Guid="*" Directory="CONFIGDIR">
+        <File Id="ConfigYaml" 
+              Name="config.yaml" 
+              Source="configs\config.yaml" 
+              KeyPath="yes" />
+      </Component>
+      
+      <!-- Web dashboard files -->
+      <Component Id="WebFiles" Guid="*" Directory="WEBDIR">
+        <File Id="IndexHtml" 
+              Name="index.html" 
+              Source="web\index.html" 
+              KeyPath="yes" />
+      </Component>
+      
+      <!-- Documentation -->
+      <Component Id="Documentation" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="ReadmeMd" 
+              Name="README.md" 
+              Source="README.md" 
+              KeyPath="yes" />
+        <File Id="LicenseFile" 
+              Name="LICENSE" 
+              Source="LICENSE" />
+      </Component>
+      
+      <!-- Startup script -->
+      <Component Id="StartupScript" Guid="*" Directory="BINDIR">
+        <File Id="StartBat" 
+              Name="start.bat" 
+              Source="installer\scripts\start.bat" 
+              KeyPath="yes" />
+        <File Id="StopBat" 
+              Name="stop.bat" 
+              Source="installer\scripts\stop.bat" />
+      </Component>
+    </ComponentGroup>
+    
+    <!-- Start Menu Shortcut -->
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="AstrCode Dashboard"
+                  Description="Open AstrCode Dashboard in browser"
+                  Target="[WEBDIR]index.html"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AstrCodeIcon.ico"
+                  IconIndex="0" />
+        
+        <Shortcut Id="UninstallShortcut"
+                  Name="Uninstall AstrCode"
+                  Description="Uninstall AstrCode"
+                  Target="[System64Folder]msiexec.exe"
+                  Arguments="/x [ProductCode]"
+                  Icon="AstrCodeIcon.ico" />
+        
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        
+        <RegistryValue Root="HKCU"
+                       Key="Software\EterUltimate\AstrCode"
+                       Name="installed"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Environment Variables -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="EnvironmentVariables" Guid="*">
+        <Environment Id="AstrCodePath"
+                     Name="ASTRCODE_HOME"
+                     Value="[INSTALLFOLDER]"
+                     Permanent="no"
+                     Part="all"
+                     Action="set"
+                     System="yes" />
+        
+        <Environment Id="AstrCodeBinPath"
+                     Name="PATH"
+                     Value="[BINDIR]"
+                     Permanent="no"
+                     Part="last"
+                     Action="set"
+                     System="yes" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Firewall Exception -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="FirewallException" Guid="*">
+        <fire:FirewallException Id="AstrCodeFirewallException"
+                                Name="AstrCode HTTP Server"
+                                Port="8080"
+                                Protocol="tcp"
+                                Scope="any"
+                                Profile="all" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+  
+  <!-- Custom Actions -->
+  <Fragment>
+    <!-- Open browser after installation -->
+    <CustomAction Id="OpenBrowser" 
+                  BinaryKey="WixCA" 
+                  DllEntry="WixShellExec" 
+                  Impersonate="yes" 
+                  Property="DashboardUrl" />
+    
+    <SetProperty Id="DashboardUrl" 
+                 Value="http://localhost:[ASTRCODE_PORT]" 
+                 Sequence="execute" 
+                 Before="OpenBrowser" />
+    
+    <InstallExecuteSequence>
+      <Custom Action="OpenBrowser" After="InstallFinalize">NOT Installed</Custom>
+    </InstallExecuteSequence>
+  </Fragment>
+</Wix>
