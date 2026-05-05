@@ -30,7 +30,7 @@ import (
 func TestAgentProcessTask(t *testing.T) {
 	// 创建模拟客户端
 	sdkClient := sdk.NewAstrBotClient("http://localhost:6185", "")
-	llmClient := llm.NewClient("http://localhost:11434", "", "qwen2.5")
+	llmClient := llm.NewClient(llm.ProviderOpenAI, "http://localhost:11434", "", "qwen2.5")
 
 	// 创建 Agent
 	ag := agent.NewAgent(llmClient, sdkClient)
