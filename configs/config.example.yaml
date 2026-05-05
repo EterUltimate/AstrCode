@@ -1,0 +1,120 @@
+# AstrCode LLM 配置示例
+# 
+# 本文件展示了如何配置不同的 LLM 提供商
+# 复制此文件并根据需要修改，然后重命名为 config.yaml
+
+# ============================================
+# 选项 1: OpenAI (包括兼容 OpenAI API 的服务)
+# ============================================
+# 适用于: OpenAI, Azure OpenAI, Ollama, LocalAI, LM Studio, vLLM 等
+
+llm:
+  provider: "openai"
+  
+  # OpenAI 官方 API
+  base_url: "https://api.openai.com"
+  api_key: "sk-your-openai-api-key"
+  model: "gpt-4o"
+  
+  # 或者使用 Azure OpenAI
+  # base_url: "https://your-resource.openai.azure.com"
+  # api_key: "your-azure-api-key"
+  # model: "gpt-4"
+  
+  # 或者使用 Ollama (本地部署)
+  # base_url: "http://localhost:11434"
+  # api_key: ""  # Ollama 不需要 API Key
+  # model: "qwen2.5"
+  
+  # 或者使用 LM Studio (本地部署)
+  # base_url: "http://localhost:1234/v1"
+  # api_key: "lm-studio"  # LM Studio 需要任意字符串作为 API Key
+  # model: "local-model"
+  
+  temperature: 0.7
+  max_tokens: 2000
+  timeout: 60s
+
+
+# ============================================
+# 选项 2: Google Gemini
+# ============================================
+# 适用于: Google Gemini API
+
+# llm:
+#   provider: "gemini"
+#   
+#   # Gemini API 基础 URL
+#   base_url: "https://generativelanguage.googleapis.com/v1beta"
+#   
+#   # 从 Google AI Studio 获取 API Key
+#   # https://aistudio.google.com/app/apikey
+#   api_key: "your-gemini-api-key"
+#   
+#   # 可用模型:
+#   # - gemini-2.0-flash (快速、经济)
+#   # - gemini-2.0-flash-lite (更快速、更经济)
+#   # - gemini-1.5-pro (最强大)
+#   # - gemini-1.5-flash (平衡性能和速度)
+#   model: "gemini-2.0-flash"
+#   
+#   temperature: 0.7
+#   max_tokens: 2000
+#   timeout: 60s
+
+
+# ============================================
+# 选项 3: Anthropic Claude
+# ============================================
+# 适用于: Anthropic Claude API
+
+# llm:
+#   provider: "claude"
+#   
+#   # Claude API 基础 URL
+#   base_url: "https://api.anthropic.com"
+#   
+#   # 从 Anthropic Console 获取 API Key
+#   # https://console.anthropic.com/settings/keys
+#   api_key: "your-claude-api-key"
+#   
+#   # 可用模型:
+#   # - claude-3-5-sonnet-20241022 (最新、最强大)
+#   # - claude-3-opus-20240229 (最强性能)
+#   # - claude-3-sonnet-20240229 (平衡)
+#   # - claude-3-haiku-20240307 (最快)
+#   model: "claude-3-5-sonnet-20241022"
+#   
+#   temperature: 0.7
+#   max_tokens: 2000
+#   timeout: 60s
+
+
+# ============================================
+# 其他配置
+# ============================================
+
+server:
+  addr: ":8080"
+  read_timeout: 30s
+  write_timeout: 30s
+
+astrbot:
+  base_url: "http://localhost:6185"
+  token: ""
+  max_retries: 3
+  timeout: 30s
+
+skills:
+  directory: "./skills"
+  top_k: 5
+  embedding_model: ""
+
+cache:
+  skill_ttl: 10m
+  plan_ttl: 30m
+  embedding_ttl: 1h
+
+log:
+  level: "info"
+  format: "json"

@@ -32,6 +32,7 @@ type Server struct {
 	agent  *agent.Agent
 	hub    *Hub
 	store  *model.TaskStore
+	mux    *http.ServeMux
 	server *http.Server
 }
 
@@ -44,6 +45,7 @@ func NewServer(ag *agent.Agent, hub *Hub, store *model.TaskStore, addr string) *
 	}
 
 	mux := http.NewServeMux()
+	s.mux = mux
 
 	// 任务 API
 	mux.HandleFunc("/api/task", s.handleTask)
@@ -86,6 +88,21 @@ func (s *Server) Start() error {
 // Stop 停止服务器
 func (s *Server) Stop(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
+}
+
+// AddStaticHandler 添加静态文件处理器
+func (s *Server) AddStaticHandler(pattern string, handler http.Handler) {
+	if s.mux != nil {
+		// 使用 HandleFunc 包装以支持 SPA 路由
+		s.mux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 如果请求的是 API 路径,让其他 handler 处理
+			if strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/ws" {
+				http.NotFound(w, r)
+				return
+			}
+			handler.ServeHTTP(w, r)
+		}))
+	}
 }
 
 // ============================================================

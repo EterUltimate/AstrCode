@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>AstrCode - AI Assistant</title>
+    <link rel="stylesheet" href="./src/style.css">
+    <link rel="stylesheet" href="./src/app.css">
+</head>
+<body>
+<div id="app">
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-section">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div class="logo-text">AstrCode</div>
+        </div>
+        <button class="new-conversation-btn">
+          <span>+</span>
+          <span data-i18n="newConversation">New conversation</span>
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title" data-i18n="modules">MODULES</div>
+        <div class="nav-item active" data-module="chat">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="chatModule">Chat</div>
+        </div>
+        <div class="nav-item" data-module="generate">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="generateModule">Generate</div>
+        </div>
+        <div class="nav-item" data-module="review">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="reviewModule">Review</div>
+        </div>
+        <div class="nav-item" data-module="deploy">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="deployModule">Deploy</div>
+        </div>
+        <div class="nav-item" data-module="skills">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="skillsModule">Skills</div>
+        </div>
+        <div class="nav-item" data-module="mcp">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="mcpModule">MCP Tools</div>
+        </div>
+        <div class="nav-item" data-module="runtime">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="runtimeModule">Runtime</div>
+        </div>
+
+        <div class="nav-section-title" data-i18n="system">SYSTEM</div>
+        <div class="nav-item" data-module="health">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="healthModule">Health</div>
+        </div>
+        <div class="nav-item" data-module="ws">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="wsModule">Events</div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="language-selector">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span id="current-lang">English</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-title" data-i18n="welcomeTitle">Welcome to AstrCode</div>
+        <div class="header-actions">
+          <div class="status-badge">
+            <div class="status-dot" id="ws-dot"></div>
+            <span id="ws-status" data-i18n="connecting">Connecting...</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Chat Module -->
+        <div id="module-chat" class="module active">
+          <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">AstrCode</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="welcomeMessage">Hello! I'm your AI coding assistant. How can I help you today?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="chat-input" placeholder="Ask anything about your codebase..." data-i18n-placeholder="chatPlaceholder" rows="1"></textarea>
+                <button class="send-button" id="chat-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Module -->
+        <div id="module-generate" class="module">
+          <div class="chat-container">
+            <div class="chat-messages" id="generate-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">Generate</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="generateDescription">Describe what you want to create, and I'll help you generate the code.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="generate-input" placeholder="e.g., Create a weather plugin that supports city name queries..." data-i18n-placeholder="generatePlaceholder" rows="1"></textarea>
+                <button class="send-button" id="generate-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Module -->
+        <div id="module-review" class="module">
+          <div class="chat-container">
+            <div class="chat-messages" id="review-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">Code Review</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="reviewDescription">Paste your code here, and I'll provide a comprehensive review.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="review-input" placeholder="Paste your code here..." data-i18n-placeholder="reviewPlaceholder" rows="3"></textarea>
+                <button class="send-button" id="review-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deploy Module -->
+        <div id="module-deploy" class="module">
+          <div class="chat-container">
+            <div class="chat-messages" id="deploy-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">Deploy</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="deployDescription">Ready to deploy your plugin? Provide the details and I'll help you.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="deploy-input" placeholder="Plugin name, description, files..." data-i18n-placeholder="deployPlaceholder" rows="1"></textarea>
+                <button class="send-button" id="deploy-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Module -->
+        <div id="module-skills" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="skillsTitle">Skills</h2>
+              <p data-i18n="skillsDescription">Available skills and plugins in your AstrCode installation.</p>
+            </div>
+            <div class="skills-grid" id="skills-list">
+              <!-- Skills will be dynamically loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Health Module -->
+        <div id="module-health" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="healthTitle">System Health</h2>
+              <p data-i18n="healthDescription">Check the status of your AstrCode server.</p>
+            </div>
+            <div class="health-dashboard" id="health-result">
+              <!-- Health data will be dynamically loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- MCP Module -->
+        <div id="module-mcp" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="mcpTitle">MCP Tools</h2>
+              <p data-i18n="mcpDescription">AstrBot-Skill MCP Server - Browse documentation, search docs, and view hook inventory.</p>
+            </div>
+            
+            <!-- MCP Tools Grid -->
+            <div class="mcp-tools-grid">
+              <div class="mcp-tool-card" data-mcp-tool="list_docs">
+                <div class="mcp-tool-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <h3 class="mcp-tool-name">list_docs</h3>
+                <p class="mcp-tool-desc">List all available documentation categories and documents</p>
+              </div>
+              
+              <div class="mcp-tool-card" data-mcp-tool="get_doc">
+                <div class="mcp-tool-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <h3 class="mcp-tool-name">get_doc</h3>
+                <p class="mcp-tool-desc">Get specific document content by category and name</p>
+              </div>
+              
+              <div class="mcp-tool-card" data-mcp-tool="search_docs">
+                <div class="mcp-tool-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                <h3 class="mcp-tool-name">search_docs</h3>
+                <p class="mcp-tool-desc">Search documentation content by keyword</p>
+              </div>
+              
+              <div class="mcp-tool-card" data-mcp-tool="get_hook_inventory">
+                <div class="mcp-tool-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                </div>
+                <h3 class="mcp-tool-name">get_hook_inventory</h3>
+                <p class="mcp-tool-desc">Get complete AstrBot hook inventory</p>
+              </div>
+            </div>
+            
+            <!-- MCP Action Area -->
+            <div class="mcp-action-area">
+              <div class="mcp-input-group">
+                <select id="mcp-category-select" class="mcp-select" title="Select documentation category">
+                  <option value="">All Categories</option>
+                  <option value="agent">Agent</option>
+                  <option value="design_standards">Design Standards</option>
+                  <option value="messages">Messages</option>
+                  <option value="plugin_config">Plugin Config</option>
+                  <option value="platform_adapters">Platform Adapters</option>
+                </select>
+                <input type="text" id="mcp-doc-input" class="mcp-input" placeholder="Document name (e.g., hooks, decorators)...">
+                <input type="text" id="mcp-search-input" class="mcp-input" placeholder="Search keyword...">
+                <button class="mcp-button" id="mcp-execute-btn">Execute</button>
+              </div>
+            </div>
+            
+            <!-- MCP Result Area -->
+            <div class="mcp-result-area">
+              <div class="mcp-result-header">
+                <span class="mcp-result-title">Result</span>
+                <button class="mcp-result-clear" id="mcp-clear-btn">Clear</button>
+              </div>
+              <div class="mcp-result-content" id="mcp-result">
+                <div class="mcp-welcome">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                  <p>Select a tool above and click Execute to get started</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Runtime Module -->
+        <div id="module-runtime" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="runtimeTitle">AstrBot Runtime</h2>
+              <p data-i18n="runtimeDescription">Start and monitor AstrBot runtime with WebUI and terminal output.</p>
+            </div>
+            
+            <!-- Runtime Controls -->
+            <div class="runtime-controls">
+              <div class="runtime-path-input">
+                <label for="astrbot-path">AstrBot Path:</label>
+                <input type="text" id="astrbot-path" class="runtime-input" value="C:\\Users\\zacza\\Desktop\\x\\AstrBot" placeholder="Path to AstrBot directory">
+              </div>
+              <div class="runtime-buttons">
+                <button class="runtime-btn start-btn" id="runtime-start-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  Start Runtime
+                </button>
+                <button class="runtime-btn stop-btn" id="runtime-stop-btn" disabled>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12"></rect></svg>
+                  Stop Runtime
+                </button>
+              </div>
+              <div class="runtime-status">
+                <span class="status-indicator" id="runtime-status-dot"></span>
+                <span id="runtime-status-text">Not running</span>
+                <span id="runtime-pid" style="margin-left: auto; font-size: 12px; color: var(--text-muted);"></span>
+              </div>
+            </div>
+            
+            <!-- WebUI Preview -->
+            <div class="runtime-webui-section">
+              <div class="section-header">
+                <h3>WebUI Preview</h3>
+                <a href="http://localhost:6185" target="_blank" rel="noopener noreferrer" class="open-link-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  Open in Browser
+                </a>
+              </div>
+              <div class="webui-container">
+                <iframe id="runtime-webui" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                <div class="webui-placeholder" id="webui-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                  <p>Start the runtime to view WebUI</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Terminal Output -->
+            <div class="runtime-terminal-section">
+              <div class="section-header">
+                <h3>Terminal Output</h3>
+                <button class="clear-terminal-btn" id="clear-terminal-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  Clear
+                </button>
+              </div>
+              <div class="terminal-output" id="terminal-output">
+                <div class="terminal-welcome">
+                  <span class="terminal-prompt">$</span> Ready to start AstrBot runtime...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WebSocket Module -->
+        <div id="module-ws" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="wsTitle">WebSocket Events</h2>
+              <p data-i18n="wsDescription">Real-time event stream from the server.</p>
+            </div>
+            <div class="api-endpoints">
+              <div class="api-card">
+                <div class="api-card-header">
+                  <span class="api-method get">WS</span>
+                  <span class="api-path">/ws</span>
+                </div>
+                <div class="api-desc" data-i18n="wsStatus">WebSocket connection status</div>
+              </div>
+            </div>
+            <pre id="ws-events" style="margin-top: 20px; max-height: 400px; overflow-y: auto; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; font-size: 12px;"></pre>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="./src/main.js" type="module"></script>
+</body>
+</html>

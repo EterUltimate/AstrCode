@@ -28,9 +28,24 @@ astrbot:
   timeout: 30s
 
 llm:
-  base_url: "http://localhost:11434"
+  # LLM 提供商类型: openai, gemini, claude
+  provider: "openai"
+  
+  # API 基础 URL (根据不同提供商配置)
+  # OpenAI: https://api.openai.com (或自定义如 http://localhost:11434)
+  # Gemini: https://generativelanguage.googleapis.com/v1beta
+  # Claude: https://api.anthropic.com
+  base_url: "https://api.openai.com"
+  
+  # API Key
   api_key: ""
-  model: "qwen2.5"
+  
+  # 模型名称
+  # OpenAI: gpt-4o, gpt-4-turbo, gpt-3.5-turbo
+  # Gemini: gemini-2.0-flash, gemini-1.5-pro
+  # Claude: claude-3-5-sonnet-20241022, claude-3-opus-20240229
+  model: "gpt-4o"
+  
   temperature: 0.7
   max_tokens: 2000
   timeout: 60s

@@ -41,9 +41,10 @@ func main() {
 		addr         = flag.String("addr", ":8080", "Server address")
 		astrbotURL   = flag.String("astrbot-url", "http://localhost:6185", "AstrBot API URL")
 		astrbotToken = flag.String("astrbot-token", "", "AstrBot API Token")
-		llmURL       = flag.String("llm-url", "http://localhost:11434", "LLM API URL")
+		llmProvider  = flag.String("llm-provider", "openai", "LLM provider: openai, gemini, claude")
+		llmURL       = flag.String("llm-url", "https://api.openai.com", "LLM API URL")
 		llmKey       = flag.String("llm-key", "", "LLM API Key")
-		llmModel     = flag.String("llm-model", "qwen2.5", "LLM Model name")
+		llmModel     = flag.String("llm-model", "gpt-4o", "LLM Model name")
 		skillsDir    = flag.String("skills-dir", "./skills", "Skills directory")
 		starsDir     = flag.String("stars-dir", "./stars", "Stars directory")
 		cacheDir     = flag.String("cache-dir", "./cache", "Cache directory")
@@ -58,7 +59,8 @@ func main() {
 	sdkClient := sdk.NewAstrBotClient(*astrbotURL, *astrbotToken)
 
 	// 创建 LLM 客户端
-	llmClient := llm.NewClient(*llmURL, *llmKey, *llmModel)
+	provider := llm.ProviderType(*llmProvider)
+	llmClient := llm.NewClient(provider, *llmURL, *llmKey, *llmModel)
 
 	// 创建 Agent
 	var ag *agent.Agent
@@ -135,12 +137,15 @@ func main() {
 	// 创建 API 服务器
 	server := api.NewServer(ag, hub, taskStore, *addr)
 
-	// 静态文件（Dashboard UI）
+	// 获取服务器的 mux 并添加静态文件支持
 	if *staticDir != "" {
 		if _, err := os.Stat(*staticDir); err == nil {
 			fs := http.FileServer(http.Dir(*staticDir))
-			http.Handle("/", fs)
-			log.Printf("Dashboard UI served from %s", *staticDir)
+			// 将静态文件处理器添加到服务器的 mux
+			server.AddStaticHandler("/", fs)
+			log.Printf("Dashboard UI served from %s at /", *staticDir)
+		} else {
+			log.Printf("Warning: static directory %s not found", *staticDir)
 		}
 	}
 

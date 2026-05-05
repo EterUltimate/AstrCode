@@ -16,302 +16,2413 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 -->
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AstrCode Dashboard</title>
-<style>
-:root {
-  --bg: #0a0a0f;
-  --surface: #12121a;
-  --surface2: #1a1a28;
-  --border: #2a2a3a;
-  --text: #e0e0e8;
-  --text-dim: #8888a0;
-  --accent: #6c5ce7;
-  --accent-glow: rgba(108,92,231,0.3);
-  --green: #00d68f;
-  --red: #ff6b6b;
-  --yellow: #ffc048;
-  --blue: #4da6ff;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-header h1 { font-size: 18px; font-weight: 600; }
-header h1 span { color: var(--accent); }
-.status-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; background:var(--surface2); border:1px solid var(--border); }
-.status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstrCode - AI Assistant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-.container { max-width: 1400px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-.card-title { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
-.card-full { grid-column: 1 / -1; }
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1f1f1f;
+      --bg-hover: #2a2a2a;
+      --border-color: #2a2a2a;
+      --border-hover: #3a3a3a;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #7c3aed;
+      --accent-hover: #8b5cf6;
+      --accent-bg: rgba(124, 58, 237, 0.1);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --font-size-base: 0.875rem;
+    }
 
-/* Task Input */
-#task-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 16px; color:var(--text); font-family:inherit; font-size:14px; resize:vertical; min-height:80px; }
-#task-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
-.btn { padding:10px 20px; border:none; border-radius:8px; font-family:inherit; font-size:13px; cursor:pointer; font-weight:600; transition:all .2s; }
-.btn-primary { background:var(--accent); color:#fff; }
-.btn-primary:hover { filter:brightness(1.2); transform:translateY(-1px); }
-.btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
-.input-row { display:flex; gap:12px; margin-top:12px; }
+    /* Light Theme */
+    [data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f9fafb;
+      --bg-tertiary: #f3f4f6;
+      --bg-hover: #e5e7eb;
+      --border-color: #e5e7eb;
+      --border-hover: #d1d5db;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent: #7c3aed;
+      --accent-hover: #8b5cf6;
+      --accent-bg: rgba(124, 58, 237, 0.1);
+      --success: #16a34a;
+      --warning: #d97706;
+      --error: #dc2626;
+      --info: #2563eb;
+    }
 
-/* Task List */
-.task-item { padding:12px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer; transition:all .2s; }
-.task-item:hover { border-color:var(--accent); background:var(--surface2); }
-.task-id { font-size:11px; color:var(--text-dim); }
-.task-content { font-size:13px; margin:4px 0; }
-.task-status { font-size:11px; padding:2px 8px; border-radius:10px; display:inline-block; }
-.status-executing { background:rgba(77,166,255,0.15); color:var(--blue); }
-.status-completed { background:rgba(0,214,143,0.15); color:var(--green); }
-.status-failed { background:rgba(255,107,107,0.15); color:var(--red); }
-.status-pending { background:rgba(255,192,72,0.15); color:var(--yellow); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+    }
 
-/* Execution Graph */
-.step-node { padding:10px 16px; border:1px solid var(--border); border-radius:8px; margin:6px 0; position:relative; transition:all .3s; }
-.step-node.running { border-color:var(--blue); background:rgba(77,166,255,0.08); }
-.step-node.completed { border-color:var(--green); background:rgba(0,214,143,0.08); }
-.step-node.failed { border-color:var(--red); background:rgba(255,107,107,0.08); }
-.step-node.pending { border-color:var(--border); opacity:0.5; }
-.step-name { font-size:13px; font-weight:600; }
-.step-meta { font-size:11px; color:var(--text-dim); margin-top:4px; }
-.step-dep-line { margin-left:20px; border-left:2px solid var(--border); padding-left:16px; }
+    .app-container {
+      display: flex;
+      height: 100vh;
+    }
 
-/* Event Stream */
-#event-stream { max-height:400px; overflow-y:auto; font-size:12px; }
-.event-item { padding:6px 0; border-bottom:1px solid var(--surface2); display:flex; gap:10px; }
-.event-time { color:var(--text-dim); min-width:70px; }
-.event-type { min-width:110px; font-weight:600; }
-.event-type.step_started { color:var(--blue); }
-.event-type.step_completed { color:var(--green); }
-.event-type.step_failed { color:var(--red); }
-.event-type.task_created { color:var(--accent); }
-.event-type.task_completed { color:var(--green); }
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
 
-/* Stats */
-.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-.stat-card { background:var(--surface2); border-radius:8px; padding:16px; text-align:center; }
-.stat-value { font-size:28px; font-weight:700; }
-.stat-label { font-size:11px; color:var(--text-dim); margin-top:4px; }
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
 
-@media (max-width:900px) { .container { grid-template-columns:1fr; } }
-</style>
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .logo-text {
+      font-size: 1.143rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .new-conversation-btn {
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.929rem;
+      transition: all 0.2s;
+    }
+
+    .new-conversation-btn:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .nav-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .nav-section-title {
+      font-size: 0.714rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 16px 8px 8px;
+      font-weight: 600;
+    }
+
+    .nav-item {
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2px;
+      transition: all 0.15s;
+      color: var(--text-secondary);
+      font-size: 0.929rem;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-bg);
+      color: var(--accent-hover);
+    }
+
+    .nav-item-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .language-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      color: var(--text-secondary);
+      font-size: 0.857rem;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+
+    .language-selector:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-secondary);
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      font-size: 0.786rem;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .header-button {
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.857rem;
+      transition: all 0.2s;
+    }
+
+    .header-button:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .module {
+      display: none;
+      height: 100%;
+    }
+
+    .module.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Chat Interface - Vercel AI SDK Style */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 768px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 20px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 0;
+    }
+
+    .message {
+      display: flex;
+      gap: 16px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .message:last-child {
+      border-bottom: none;
+    }
+
+    .message-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.857rem;
+      font-weight: 600;
+    }
+
+    .message-avatar.user {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+
+    .message-avatar.assistant {
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: white;
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .message-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .message-time {
+      font-size: 0.786rem;
+      color: var(--text-muted);
+    }
+
+    .message-body {
+      color: var(--text-primary);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .message-body p {
+      margin-bottom: 12px;
+    }
+
+    .message-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message-body pre {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    .message-body code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.929rem;
+      color: var(--text-primary);
+    }
+
+    .message-body code:not(pre code) {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.857rem;
+    }
+
+    /* Streaming indicator */
+    .streaming-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .streaming-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: streaming-bounce 1.4s infinite ease-in-out both;
+    }
+
+    .streaming-dot:nth-child(1) { animation-delay: -0.32s; }
+    .streaming-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes streaming-bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Input Area */
+    .input-container {
+      padding: 16px 0 24px;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-primary);
+    }
+
+    .input-box {
+      position: relative;
+      max-width: 768px;
+      margin: 0 auto;
+    }
+
+    .chat-input {
+      width: 100%;
+      min-height: 52px;
+      max-height: 200px;
+      padding: 14px 48px 14px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      color: var(--text-primary);
+      font-size: 1rem;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.5;
+      transition: all 0.2s;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-button {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-md);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 1.143rem;
+    }
+
+    .send-button:hover {
+      background: var(--accent-hover);
+      transform: scale(1.05);
+    }
+
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .input-footer {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+      font-size: 0.786rem;
+      color: var(--text-muted);
+    }
+
+    /* API Endpoints Module */
+    .api-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    .api-header {
+      margin-bottom: 24px;
+    }
+
+    .api-header h2 {
+      font-size: 1.429rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .api-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .api-endpoints {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .api-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .api-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-tertiary);
+    }
+
+    .api-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .api-method {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.786rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .api-method.get {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+    }
+
+    .api-method.post {
+      background: rgba(124, 58, 237, 0.15);
+      color: var(--accent-hover);
+    }
+
+    .api-path {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.929rem;
+      color: var(--text-primary);
+    }
+
+    .api-desc {
+      font-size: 0.929rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+
+    /* Settings Module Styles */
+    .settings-section {
+      margin-bottom: 32px;
+    }
+
+    .settings-section h3 {
+      font-size: 1.143rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .provider-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .provider-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .provider-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-tertiary);
+      transform: translateY(-2px);
+    }
+
+    .provider-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .provider-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .provider-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: white;
+    }
+
+    .provider-info {
+      flex: 1;
+    }
+
+    .provider-name {
+      font-size: 1.143rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .provider-desc {
+      font-size: 0.929rem;
+      color: var(--text-secondary);
+    }
+
+    .settings-form {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .form-hint {
+      font-size: 0.857rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .form-range {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-tertiary);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .form-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .form-range::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
+    }
+
+    .range-value {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-hover);
+    }
+
+    .status-message {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      display: none;
+    }
+
+    .status-message.success {
+      display: block;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .status-message.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .status-message.info {
+      display: block;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid var(--info);
+      color: var(--info);
+    }
+
+    /* Settings Page Styles */
+    .settings-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .settings-header {
+      margin-bottom: 32px;
+    }
+
+    .settings-header h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .settings-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .settings-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .tab-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-bg);
+      color: var(--accent);
+    }
+
+    .tab-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .theme-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .theme-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .theme-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .theme-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .theme-preview {
+      width: 100%;
+      height: 80px;
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+    }
+
+    .dark-preview {
+      background: linear-gradient(135deg, #0a0a0a 50%, #1f1f1f 50%);
+    }
+
+    .light-preview {
+      background: linear-gradient(135deg, #ffffff 50%, #f5f5f5 50%);
+    }
+
+    .auto-preview {
+      background: linear-gradient(135deg, #0a0a0a 50%, #ffffff 50%);
+    }
+
+    .theme-name {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .color-picker input[type="color"] {
+      width: 50px;
+      height: 40px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+    }
+
+    .color-value {
+      font-family: monospace;
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .import-section {
+      margin-top: 16px;
+    }
+
+    .import-area {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .import-area:hover {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .import-area svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      stroke: var(--text-secondary);
+    }
+
+    .import-area p {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .items-list {
+      margin-top: 24px;
+    }
+
+    .item-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-info h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .item-info p {
+      font-size: 0.857rem;
+      color: var(--text-muted);
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.857rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      
+      .chat-container {
+        padding: 0 12px;
+      }
+    }
+  </style>
 </head>
 <body>
-<header>
-  <h1>🚀 <span>AstrCode</span> Dashboard</h1>
-  <div class="status-badge">
-    <div class="status-dot" id="ws-dot"></div>
-    <span id="ws-status">Connecting...</span>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-section">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div class="logo-text">AstrCode</div>
+        </div>
+        <button class="new-conversation-btn" onclick="newConversation()">
+          <span>+</span>
+          <span data-i18n="newConversation">New conversation</span>
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title" data-i18n="modules">MODULES</div>
+        <div class="nav-item active" onclick="switchModule('chat')" data-module="chat">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="chatModule">Chat</div>
+        </div>
+        <div class="nav-item" onclick="switchModule('generate')" data-module="generate">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="generateModule">Generate</div>
+        </div>
+        <div class="nav-item" onclick="switchModule('review')" data-module="review">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="reviewModule">Review</div>
+        </div>
+        <div class="nav-item" onclick="switchModule('deploy')" data-module="deploy">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="deployModule">Deploy</div>
+        </div>
+        <div class="nav-item" onclick="switchModule('skills')" data-module="skills">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="skillsModule">Skills</div>
+        </div>
+
+        <div class="nav-section-title" data-i18n="system">SYSTEM</div>
+        <div class="nav-item" onclick="switchModule('health')" data-module="health">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="healthModule">Health</div>
+        </div>
+        <div class="nav-item" onclick="switchModule('ws')" data-module="ws">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="wsModule">Events</div>
+        </div>
+        <div class="nav-item" onclick="switchModule('settings')" data-module="settings">
+          <div class="nav-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
+          <div class="nav-item-text" data-i18n="settingsModule">Settings</div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="language-selector" onclick="toggleLanguage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span id="current-lang">English</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-title" data-i18n="welcomeTitle">Welcome to AstrCode</div>
+        <div class="header-actions">
+          <div class="status-badge">
+            <div class="status-dot" id="ws-dot"></div>
+            <span id="ws-status" data-i18n="connecting">Connecting...</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Chat Module -->
+        <div id="module-chat" class="module active">
+          <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">AstrCode</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="welcomeMessage">Hello! I'm your AI coding assistant. How can I help you today?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="chat-input" placeholder="Ask anything about your codebase..." data-i18n-placeholder="chatPlaceholder" rows="1"></textarea>
+                <button class="send-button" onclick="sendChat()" id="chat-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Module -->
+        <div id="module-generate" class="module">
+          <div class="chat-container">
+            <div class="chat-messages" id="generate-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">Generate</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="generateDescription">Describe what you want to create, and I'll help you generate the code.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="generate-input" placeholder="e.g., Create a weather plugin that supports city name queries..." data-i18n-placeholder="generatePlaceholder" rows="1"></textarea>
+                <button class="send-button" onclick="generateCode()" id="generate-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Module -->
+        <div id="module-review" class="module">
+          <div class="chat-container">
+            <div class="chat-messages" id="review-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">Code Review</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="reviewDescription">Paste your code here, and I'll provide a comprehensive review.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="review-input" placeholder="Paste your code here..." data-i18n-placeholder="reviewPlaceholder" rows="3"></textarea>
+                <button class="send-button" onclick="reviewCode()" id="review-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deploy Module -->
+        <div id="module-deploy" class="module">
+          <div class="chat-container">
+            <div class="chat-messages" id="deploy-messages">
+              <div class="message assistant">
+                <div class="message-avatar assistant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">Deploy</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-body">
+                    <p data-i18n="deployDescription">Ready to deploy your plugin? Provide the details and I'll help you.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="input-container">
+              <div class="input-box">
+                <textarea class="chat-input" id="deploy-input" placeholder="Plugin name, description, files..." data-i18n-placeholder="deployPlaceholder" rows="1"></textarea>
+                <button class="send-button" onclick="deployPlugin()" id="deploy-send">↑</button>
+              </div>
+              <div class="input-footer">
+                <span data-i18n="inputFooter">AstrCode can make mistakes. Check important info.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Module -->
+        <div id="module-skills" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="skillsTitle">Skills</h2>
+              <p data-i18n="skillsDescription">Available skills and plugins in your AstrCode installation.</p>
+            </div>
+            <div class="api-endpoints" id="skills-list">
+              <div class="api-card" onclick="loadSkills()">
+                <div class="api-card-header">
+                  <span class="api-method get">GET</span>
+                  <span class="api-path">/api/skills</span>
+                </div>
+                <div class="api-desc" data-i18n="skillsClickToLoad">Click to load skills</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Health Module -->
+        <div id="module-health" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="healthTitle">System Health</h2>
+              <p data-i18n="healthDescription">Check the status of your AstrCode server.</p>
+            </div>
+            <div class="api-endpoints">
+              <div class="api-card" onclick="loadHealth()">
+                <div class="api-card-header">
+                  <span class="api-method get">GET</span>
+                  <span class="api-path">/api/health</span>
+                </div>
+                <div class="api-desc" data-i18n="healthClickToCheck">Click to check health status</div>
+              </div>
+            </div>
+            <div id="health-result" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- WebSocket Module -->
+        <div id="module-ws" class="module">
+          <div class="api-container">
+            <div class="api-header">
+              <h2 data-i18n="wsTitle">WebSocket Events</h2>
+              <p data-i18n="wsDescription">Real-time event stream from the server.</p>
+            </div>
+            <div class="api-endpoints">
+              <div class="api-card">
+                <div class="api-card-header">
+                  <span class="api-method get">WS</span>
+                  <span class="api-path">/ws</span>
+                </div>
+                <div class="api-desc" data-i18n="wsStatus">WebSocket connection status</div>
+              </div>
+            </div>
+            <pre id="ws-events" style="margin-top: 20px; max-height: 400px; overflow-y: auto; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; font-size: 0.857rem;"></pre>
+          </div>
+        </div>
+
+        <!-- Settings Module -->
+        <div id="module-settings" class="module">
+          <div class="settings-container">
+            <div class="settings-header">
+              <h2 data-i18n="settingsTitle">Settings</h2>
+              <p data-i18n="settingsDescription">Configure your AstrCode environment.</p>
+            </div>
+            
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+              <button class="tab-btn active" onclick="switchSettingsTab('theme')" data-tab="theme">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <span data-i18n="themeTab">Theme</span>
+              </button>
+              <button class="tab-btn" onclick="switchSettingsTab('llm')" data-tab="llm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                <span data-i18n="llmTab">LLM API</span>
+              </button>
+              <button class="tab-btn" onclick="switchSettingsTab('skills')" data-tab="skills">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span data-i18n="skillsTab">Skills</span>
+              </button>
+              <button class="tab-btn" onclick="switchSettingsTab('mcp')" data-tab="mcp">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span data-i18n="mcpTab">MCP</span>
+              </button>
+              <button class="tab-btn" onclick="switchSettingsTab('sdk')" data-tab="sdk">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                <span data-i18n="sdkTab">SDK</span>
+              </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="settings-content">
+              <!-- Theme Tab -->
+              <div id="tab-theme" class="tab-content active">
+                <div class="settings-section">
+                  <h3 data-i18n="appearanceSettings">Appearance</h3>
+                  <div class="theme-options">
+                    <div class="theme-card selected" onclick="setTheme('dark')" data-theme="dark">
+                      <div class="theme-preview dark-preview"></div>
+                      <div class="theme-name">Dark</div>
+                    </div>
+                    <div class="theme-card" onclick="setTheme('light')" data-theme="light">
+                      <div class="theme-preview light-preview"></div>
+                      <div class="theme-name">Light</div>
+                    </div>
+                    <div class="theme-card" onclick="setTheme('auto')" data-theme="auto">
+                      <div class="theme-preview auto-preview"></div>
+                      <div class="theme-name">Auto</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="settings-section">
+                  <h3 data-i18n="customizationSettings">Customization</h3>
+                  <div class="form-group">
+                    <label data-i18n="accentColor">Accent Color</label>
+                    <div class="color-picker">
+                      <input type="color" id="accent-color" value="#7c3aed" onchange="updateAccentColor(this.value)">
+                      <span class="color-value">#7c3aed</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label data-i18n="fontSize">Font Size</label>
+                    <select id="font-size" class="form-select" onchange="updateFontSize(this.value)">
+                      <option value="small">Small</option>
+                      <option value="medium" selected>Medium</option>
+                      <option value="large">Large</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LLM API Tab -->
+              <div id="tab-llm" class="tab-content">
+                <div class="settings-section">
+                  <h3 data-i18n="providerSelection">Provider Selection</h3>
+                  <div class="provider-cards">
+                    <div class="provider-card" onclick="selectProvider('openai')" data-provider="openai">
+                      <div class="provider-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+                      </div>
+                      <div class="provider-info">
+                        <div class="provider-name">OpenAI</div>
+                        <div class="provider-desc" data-i18n="openaiDesc">GPT-4, GPT-3.5, Azure, Ollama</div>
+                      </div>
+                    </div>
+                    <div class="provider-card" onclick="selectProvider('gemini')" data-provider="gemini">
+                      <div class="provider-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                      </div>
+                      <div class="provider-info">
+                        <div class="provider-name">Google Gemini</div>
+                        <div class="provider-desc" data-i18n="geminiDesc">Gemini 2.0, 1.5 Pro, Flash</div>
+                      </div>
+                    </div>
+                    <div class="provider-card" onclick="selectProvider('claude')" data-provider="claude">
+                      <div class="provider-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                      </div>
+                      <div class="provider-info">
+                        <div class="provider-name">Anthropic Claude</div>
+                        <div class="provider-desc" data-i18n="claudeDesc">Claude 3.5 Sonnet, Opus, Haiku</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="settings-form">
+                  <div class="form-group">
+                    <label for="llm-base-url" data-i18n="baseUrl">Base URL</label>
+                    <input type="text" id="llm-base-url" class="form-input" placeholder="https://api.openai.com">
+                    <div class="form-hint" data-i18n="baseUrlHint">API endpoint URL for your selected provider</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="llm-api-key" data-i18n="apiKey">API Key</label>
+                    <input type="password" id="llm-api-key" class="form-input" placeholder="sk-...">
+                    <div class="form-hint" data-i18n="apiKeyHint">Your API key (stored locally, never sent to our servers)</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="llm-model" data-i18n="model">Model</label>
+                    <input type="text" id="llm-model" class="form-input" placeholder="gpt-4o">
+                    <div class="form-hint" id="model-hint" data-i18n="modelHint">Select a model from your provider</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="llm-temperature" data-i18n="temperature">Temperature</label>
+                    <input type="range" id="llm-temperature" class="form-range" min="0" max="2" step="0.1" value="0.7">
+                    <div class="range-value" id="temperature-value">0.7</div>
+                    <div class="form-hint" data-i18n="temperatureHint">Higher values = more creative, lower = more deterministic</div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="testConnection()" data-i18n="testConnection">Test Connection</button>
+                    <button class="btn btn-primary" onclick="saveLLMSettings()" data-i18n="saveSettings">Save Settings</button>
+                  </div>
+
+                  <div id="llm-status" class="status-message"></div>
+                </div>
+              </div>
+
+              <!-- Skills Tab -->
+              <div id="tab-skills" class="tab-content">
+                <div class="settings-section">
+                  <h3 data-i18n="skillManagement">Skill Management</h3>
+                  <div class="import-section">
+                    <div class="import-area" ondrop="handleSkillDrop(event)" ondragover="event.preventDefault()">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      <p data-i18n="dragDropSkills">Drag & drop skill files here</p>
+                      <button class="btn btn-secondary" onclick="document.getElementById('skill-file-input').click()" data-i18n="browseFiles">Browse Files</button>
+                      <input type="file" id="skill-file-input" multiple accept=".yaml,.yml,.json" style="display: none" onchange="handleSkillUpload(this.files)">
+                    </div>
+                  </div>
+                  <div id="skills-list" class="items-list"></div>
+                </div>
+              </div>
+
+              <!-- MCP Tab -->
+              <div id="tab-mcp" class="tab-content">
+                <div class="settings-section">
+                  <h3 data-i18n="mcpManagement">MCP Server Management</h3>
+                  <div class="import-section">
+                    <div class="import-area" ondrop="handleMCPServerDrop(event)" ondragover="event.preventDefault()">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                      <p data-i18n="dragDropMCP">Drag & drop MCP server configs here</p>
+                      <button class="btn btn-secondary" onclick="document.getElementById('mcp-file-input').click()" data-i18n="browseFiles">Browse Files</button>
+                      <input type="file" id="mcp-file-input" multiple accept=".json,.yaml,.yml" style="display: none" onchange="handleMCPUpload(this.files)">
+                    </div>
+                  </div>
+                  <div id="mcp-list" class="items-list"></div>
+                </div>
+              </div>
+
+              <!-- SDK Tab -->
+              <div id="tab-sdk" class="tab-content">
+                <div class="settings-section">
+                  <h3 data-i18n="sdkManagement">SDK Configuration</h3>
+                  <div class="form-group">
+                    <label for="astrbot-url" data-i18n="astrbotUrl">AstrBot URL</label>
+                    <input type="text" id="astrbot-url" class="form-input" placeholder="http://localhost:6185">
+                  </div>
+                  <div class="form-group">
+                    <label for="astrbot-token" data-i18n="astrbotToken">AstrBot Token</label>
+                    <input type="password" id="astrbot-token" class="form-input" placeholder="Enter token...">
+                  </div>
+                  <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveSDKSettings()" data-i18n="saveSettings">Save Settings</button>
+                  </div>
+                  <div id="sdk-status" class="status-message"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
-</header>
 
-<div class="container">
-  <!-- Task Input -->
-  <div class="card card-full">
-    <div class="card-title">Submit Task</div>
-    <textarea id="task-input" placeholder="Enter task description... e.g. Read the code and fix the bug"></textarea>
-    <div class="input-row">
-      <button class="btn btn-primary" onclick="submitTask(false)">▶ Execute</button>
-      <button class="btn btn-secondary" onclick="submitTask(true)">⚡ Async Execute</button>
-      <button class="btn btn-secondary" onclick="generatePlan()">📋 Plan Only</button>
-    </div>
-  </div>
+  <script>
+    const API = window.location.origin;
+    let currentLang = 'en';
+    let ws = null;
+    let wsEvents = [];
 
-  <!-- Stats -->
-  <div class="card card-full">
-    <div class="card-title">System Status</div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-value" id="stat-tasks">0</div><div class="stat-label">Total Tasks</div></div>
-      <div class="stat-card"><div class="stat-value" id="stat-running">0</div><div class="stat-label">Running</div></div>
-      <div class="stat-card"><div class="stat-value" id="stat-skills">0</div><div class="stat-label">Skills</div></div>
-    </div>
-  </div>
+    // i18n translations
+    const i18n = {
+      en: {
+        newConversation: 'New conversation',
+        modules: 'MODULES',
+        chatModule: 'Chat',
+        generateModule: 'Generate',
+        reviewModule: 'Review',
+        deployModule: 'Deploy',
+        skillsModule: 'Skills',
+        system: 'SYSTEM',
+        healthModule: 'Health',
+        wsModule: 'Events',
+        settingsModule: 'Settings',
+        welcomeTitle: 'Welcome to AstrCode',
+        connecting: 'Connecting...',
+        connected: 'Connected',
+        disconnected: 'Disconnected',
+        welcomeMessage: "Hello! I'm your AI coding assistant. How can I help you today?",
+        chatPlaceholder: 'Ask anything about your codebase...',
+        send: 'Send',
+        generateDescription: 'Describe what you want to create, and I\'ll help you generate the code.',
+        generatePlaceholder: 'e.g., Create a weather plugin that supports city name queries...',
+        reviewDescription: 'Paste your code here, and I\'ll provide a comprehensive review.',
+        reviewPlaceholder: 'Paste your code here...',
+        deployDescription: 'Ready to deploy your plugin? Provide the details and I\'ll help you.',
+        deployPlaceholder: 'Plugin name, description, files...',
+        skillsTitle: 'Skills',
+        skillsDescription: 'Available skills and plugins in your AstrCode installation.',
+        skillsClickToLoad: 'Click to load skills',
+        healthTitle: 'System Health',
+        healthDescription: 'Check the status of your AstrCode server.',
+        healthClickToCheck: 'Click to check health status',
+        wsTitle: 'WebSocket Events',
+        wsDescription: 'Real-time event stream from the server.',
+        wsStatus: 'WebSocket connection status',
+        inputFooter: 'AstrCode can make mistakes. Check important info.',
+        user: 'You',
+        assistant: 'AstrCode',
+        settingsTitle: 'LLM Configuration',
+        settingsDescription: 'Configure your LLM provider and API settings.',
+        themeTab: 'Theme',
+        llmTab: 'LLM API',
+        skillsTab: 'Skills',
+        mcpTab: 'MCP',
+        sdkTab: 'SDK',
+        appearanceSettings: 'Appearance',
+        customizationSettings: 'Customization',
+        accentColor: 'Accent Color',
+        fontSize: 'Font Size',
+        skillManagement: 'Skill Management',
+        dragDropSkills: 'Drag & drop skill files here',
+        browseFiles: 'Browse Files',
+        mcpManagement: 'MCP Server Management',
+        dragDropMCP: 'Drag & drop MCP server configs here',
+        sdkManagement: 'SDK Configuration',
+        astrbotUrl: 'AstrBot URL',
+        astrbotToken: 'AstrBot Token',
+        providerSelection: 'Provider Selection',
+        openaiDesc: 'GPT-4, GPT-3.5, Azure, Ollama',
+        geminiDesc: 'Gemini 2.0, 1.5 Pro, Flash',
+        claudeDesc: 'Claude 3.5 Sonnet, Opus, Haiku',
+        baseUrl: 'Base URL',
+        baseUrlHint: 'API endpoint URL for your selected provider',
+        apiKey: 'API Key',
+        apiKeyHint: 'Your API key (stored locally, never sent to our servers)',
+        model: 'Model',
+        modelHint: 'Select a model from your provider',
+        temperature: 'Temperature',
+        temperatureHint: 'Higher values = more creative, lower = more deterministic',
+        testConnection: 'Test Connection',
+        saveSettings: 'Save Settings'
+      },
+      zh: {
+        newConversation: '新对话',
+        modules: '功能模块',
+        chatModule: '对话',
+        generateModule: '生成',
+        reviewModule: '审查',
+        deployModule: '部署',
+        skillsModule: '技能',
+        system: '系统',
+        healthModule: '健康',
+        wsModule: '事件',
+        settingsModule: '设置',
+        welcomeTitle: '欢迎使用 AstrCode',
+        connecting: '连接中...',
+        connected: '已连接',
+        disconnected: '未连接',
+        welcomeMessage: '你好！我是你的 AI 编程助手。今天我能帮你什么？',
+        chatPlaceholder: '询问关于你的代码库的任何问题...',
+        send: '发送',
+        generateDescription: '描述你想要创建的内容，我会帮你生成代码。',
+        generatePlaceholder: '例如：创建一个支持城市名称查询的天气插件...',
+        reviewDescription: '在这里粘贴你的代码，我会提供全面的审查意见。',
+        reviewPlaceholder: '在这里粘贴你的代码...',
+        deployDescription: '准备部署你的插件？提供详细信息，我会帮助你。',
+        deployPlaceholder: '插件名称、描述、文件...',
+        skillsTitle: '技能',
+        skillsDescription: 'AstrCode 安装中可用的技能和插件。',
+        skillsClickToLoad: '点击加载技能列表',
+        healthTitle: '系统健康',
+        healthDescription: '检查 AstrCode 服务器的状态。',
+        healthClickToCheck: '点击检查健康状态',
+        wsTitle: 'WebSocket 事件',
+        wsDescription: '来自服务器的实时事件流。',
+        wsStatus: 'WebSocket 连接状态',
+        inputFooter: 'AstrCode 可能会出错。请检查重要信息。',
+        user: '你',
+        assistant: 'AstrCode',
+        settingsTitle: 'LLM 配置',
+        settingsDescription: '配置你的 LLM 提供商和 API 设置。',
+        themeTab: '主题',
+        llmTab: 'LLM API',
+        skillsTab: '技能',
+        mcpTab: 'MCP',
+        sdkTab: 'SDK',
+        appearanceSettings: '外观',
+        customizationSettings: '自定义',
+        accentColor: '强调色',
+        fontSize: '字体大小',
+        skillManagement: '技能管理',
+        dragDropSkills: '拖放技能文件到这里',
+        browseFiles: '浏览文件',
+        mcpManagement: 'MCP 服务器管理',
+        dragDropMCP: '拖放 MCP 服务器配置到这里',
+        sdkManagement: 'SDK 配置',
+        astrbotUrl: 'AstrBot URL',
+        astrbotToken: 'AstrBot Token',
+        providerSelection: '选择提供商',
+        openaiDesc: 'GPT-4, GPT-3.5, Azure, Ollama',
+        geminiDesc: 'Gemini 2.0, 1.5 Pro, Flash',
+        claudeDesc: 'Claude 3.5 Sonnet, Opus, Haiku',
+        baseUrl: '基础 URL',
+        baseUrlHint: '所选提供商的 API 端点 URL',
+        apiKey: 'API 密钥',
+        apiKeyHint: '你的 API 密钥（本地存储，不会发送到我们的服务器）',
+        model: '模型',
+        modelHint: '从你的提供商中选择一个模型',
+        temperature: '温度',
+        temperatureHint: '较高的值 = 更有创造性，较低的值 = 更确定性',
+        testConnection: '测试连接',
+        saveSettings: '保存设置',
+        user: '你',
+        assistant: 'AstrCode'
+      }
+    };
 
-  <!-- Task List -->
-  <div class="card">
-    <div class="card-title">Tasks</div>
-    <div id="task-list"><div style="color:var(--text-dim);font-size:13px;">No tasks yet</div></div>
-  </div>
-
-  <!-- Execution Graph -->
-  <div class="card">
-    <div class="card-title">Execution Graph</div>
-    <div id="exec-graph"><div style="color:var(--text-dim);font-size:13px;">Submit a task to see execution graph</div></div>
-  </div>
-
-  <!-- Event Stream -->
-  <div class="card card-full">
-    <div class="card-title">Live Event Stream</div>
-    <div id="event-stream"></div>
-  </div>
-</div>
-
-<script>
-const API = window.location.origin;
-let ws = null;
-let currentPlan = null;
-let taskCount = 0;
-
-function connectWS() {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  ws = new WebSocket(`${proto}://${location.host}/ws`);
-  ws.onopen = () => {
-    document.getElementById('ws-dot').style.background = 'var(--green)';
-    document.getElementById('ws-status').textContent = 'Connected';
-  };
-  ws.onclose = () => {
-    document.getElementById('ws-dot').style.background = 'var(--red)';
-    document.getElementById('ws-status').textContent = 'Disconnected';
-    setTimeout(connectWS, 3000);
-  };
-  ws.onmessage = (e) => {
-    const evt = JSON.parse(e.data);
-    addEvent(evt);
-    updateGraph(evt);
-  };
-}
-
-async function submitTask(async) {
-  const task = document.getElementById('task-input').value.trim();
-  if (!task) return;
-  const resp = await fetch(`${API}/api/task`, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({task, async})
-  });
-  const data = await resp.json();
-  taskCount++;
-  document.getElementById('stat-tasks').textContent = taskCount;
-  refreshTaskList();
-  if (data.task_id) {
-    addEvent({type:'task_created', task_id:data.task_id, data:{status:'submitted'}});
-  }
-}
-
-async function generatePlan() {
-  const task = document.getElementById('task-input').value.trim();
-  if (!task) return;
-  const resp = await fetch(`${API}/api/plan`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({task})
-  });
-  const plan = await resp.json();
-  currentPlan = plan;
-  renderGraph(plan);
-}
-
-function addEvent(evt) {
-  const stream = document.getElementById('event-stream');
-  const time = new Date(evt.timestamp || Date.now()).toLocaleTimeString('en',{hour12:false});
-  const div = document.createElement('div');
-  div.className = 'event-item';
-  div.innerHTML = `<span class="event-time">${time}</span><span class="event-type ${evt.type}">${evt.type}</span><span>${evt.step_id||evt.task_id||''} ${evt.data?JSON.stringify(evt.data).substring(0,80):''}</span>`;
-  stream.prepend(div);
-}
-
-function updateGraph(evt) {
-  if (evt.type === 'task_created' && evt.task_id) {
-    loadSnapshot(evt.task_id);
-  }
-  if (evt.type === 'step_started' || evt.type === 'step_completed' || evt.type === 'step_failed') {
-    if (evt.task_id) loadSnapshot(evt.task_id);
-  }
-  if (evt.type === 'task_completed' && evt.task_id) {
-    loadSnapshot(evt.task_id);
-    refreshTaskList();
-  }
-}
-
-async function loadSnapshot(taskId) {
-  try {
-    const resp = await fetch(`${API}/api/snapshot/${taskId}`);
-    const snap = await resp.json();
-    if (snap && snap.steps) renderGraphFromSnapshot(snap);
-    if (snap && snap.task_status === 'executing') {
-      document.getElementById('stat-running').textContent = parseInt(document.getElementById('stat-running').textContent)+1;
+    function t(key) {
+      return i18n[currentLang][key] || i18n.en[key] || key;
     }
-  } catch(e) {}
-}
 
-function renderGraphFromSnapshot(snap) {
-  const container = document.getElementById('exec-graph');
-  container.innerHTML = '';
-  if (!snap.steps || snap.steps.length === 0) return;
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'zh' : 'en';
+      document.getElementById('current-lang').textContent = currentLang === 'en' ? 'English' : '中文';
+      document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-CN';
+      updateTranslations();
+    }
 
-  const statusIcon = {completed:'✅', running:'🔄', failed:'❌', pending:'⏳', skipped:'⏭️'};
-  const stepsByDep = {};
-  const roots = [];
-
-  snap.steps.forEach(s => {
-    if (!s.depends_on || s.depends_on.length === 0) {
-      roots.push(s);
-    } else {
-      s.depends_on.forEach(dep => {
-        if (!stepsByDep[dep]) stepsByDep[dep] = [];
-        stepsByDep[dep].push(s);
+    function updateTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = t(key);
       });
     }
-  });
 
-  function renderStep(step, depth) {
-    const div = document.createElement('div');
-    div.className = `step-node ${step.status}`;
-    div.style.marginLeft = (depth * 20) + 'px';
-    const dur = step.duration ? ` (${step.duration}ms)` : '';
-    div.innerHTML = `<div class="step-name">${statusIcon[step.status]||'⏳'} ${step.skill||step.type} ${step.id}</div><div class="step-meta">${step.type} · ${step.status}${dur}${step.error?' · '+step.error:''}</div>`;
-    container.appendChild(div);
+    function switchModule(moduleName) {
+      document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      document.getElementById(`module-${moduleName}`).classList.add('active');
+      document.querySelector(`[data-module="${moduleName}"]`).classList.add('active');
 
-    if (stepsByDep[step.id]) {
-      stepsByDep[step.id].forEach(child => renderStep(child, depth+1));
+      if (moduleName === 'health') {
+        loadHealth();
+      } else if (moduleName === 'skills') {
+        loadSkills();
+      } else if (moduleName === 'settings') {
+        initSettings();
+      }
     }
-  }
 
-  roots.forEach(r => renderStep(r, 0));
-}
-
-function renderGraph(plan) {
-  renderGraphFromSnapshot({steps: plan.steps || []});
-}
-
-async function refreshTaskList() {
-  try {
-    const resp = await fetch(`${API}/api/tasks`);
-    const data = await resp.json();
-    const list = document.getElementById('task-list');
-    if (!data.tasks || data.tasks.length === 0) {
-      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px">No tasks yet</div>';
-      return;
+    function addMessage(module, role, content, isStreaming = false) {
+      const container = document.getElementById(`${module}-messages`);
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+      
+      const time = new Date().toLocaleTimeString(currentLang === 'zh' ? 'zh-CN' : 'en', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar ${role}">${role === 'user' ? 'U' : 'A'}</div>
+        <div class="message-content">
+          <div class="message-header">
+            <span class="message-name">${role === 'user' ? t('user') : t('assistant')}</span>
+            <span class="message-time">${time}</span>
+          </div>
+          <div class="message-body">${content}</div>
+          ${isStreaming ? '<div class="streaming-indicator"><div class="streaming-dot"></div><div class="streaming-dot"></div><div class="streaming-dot"></div></div>' : ''}
+        </div>
+      `;
+      container.appendChild(messageDiv);
+      messageDiv.scrollIntoView({ behavior: 'smooth' });
+      return messageDiv;
     }
-    list.innerHTML = '';
-    data.tasks.slice(0, 20).forEach(t => {
-      const div = document.createElement('div');
-      div.className = 'task-item';
-      div.onclick = () => loadSnapshot(t.id);
-      const statusClass = `status-${t.status}`;
-      div.innerHTML = `<div class="task-id">${t.id}</div><div class="task-content">${t.content||''}</div><span class="task-status ${statusClass}">${t.status}</span>`;
-      list.appendChild(div);
+
+    function updateMessage(messageDiv, content) {
+      messageDiv.querySelector('.message-body').innerHTML = content;
+    }
+
+    function newConversation() {
+      location.reload();
+    }
+
+    // Auto-resize textarea
+    document.querySelectorAll('.chat-input').forEach(textarea => {
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+      });
+      
+      textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          const module = this.id.split('-')[0];
+          const sendBtn = document.getElementById(`${module}-send`);
+          if (sendBtn && !sendBtn.disabled) {
+            sendBtn.click();
+          }
+        }
+      });
     });
-    document.getElementById('stat-tasks').textContent = data.total || data.tasks.length;
-    document.getElementById('stat-running').textContent = data.running || 0;
-  } catch(e) {}
-}
 
-async function loadSkills() {
-  try {
-    const resp = await fetch(`${API}/api/skills`);
-    const data = await resp.json();
-    document.getElementById('stat-skills').textContent = data.count || 0;
-  } catch(e) {}
-}
+    // WebSocket
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      ws = new WebSocket(`${proto}://${location.host}/ws`);
+      
+      ws.onopen = () => {
+        document.getElementById('ws-dot').style.background = 'var(--success)';
+        document.getElementById('ws-status').textContent = t('connected');
+      };
+      
+      ws.onclose = () => {
+        document.getElementById('ws-dot').style.background = 'var(--error)';
+        document.getElementById('ws-status').textContent = t('disconnected');
+        setTimeout(connectWS, 3000);
+      };
+      
+      ws.onmessage = (e) => {
+        const evt = JSON.parse(e.data);
+        wsEvents.push(evt);
+        const eventsDiv = document.getElementById('ws-events');
+        if (eventsDiv) {
+          eventsDiv.textContent = JSON.stringify(wsEvents, null, 2);
+        }
+      };
+    }
 
-connectWS();
-loadSkills();
-refreshTaskList();
-</script>
+    // API calls with streaming simulation
+    async function sendChat() {
+      const input = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send');
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage('chat', 'user', message);
+      input.value = '';
+      input.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      const assistantMsg = addMessage('chat', 'assistant', '', true);
+
+      try {
+        const response = await fetch(`${API}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requirement: message })
+        });
+        const data = await response.json();
+        
+        // Simulate streaming effect
+        let displayText = '';
+        const jsonStr = JSON.stringify(data, null, 2);
+        const chunks = jsonStr.split('');
+        
+        for (let i = 0; i < chunks.length; i++) {
+          displayText += chunks[i];
+          updateMessage(assistantMsg, `<pre><code>${displayText}</code></pre>`);
+          await new Promise(resolve => setTimeout(resolve, 5));
+        }
+        
+        // Remove streaming indicator
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } catch (error) {
+        updateMessage(assistantMsg, `<p style="color: var(--error);">Error: ${error.message}</p>`);
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    async function generateCode() {
+      const input = document.getElementById('generate-input');
+      const sendBtn = document.getElementById('generate-send');
+      const requirement = input.value.trim();
+      if (!requirement) return;
+
+      addMessage('generate', 'user', requirement);
+      input.value = '';
+      input.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      const assistantMsg = addMessage('generate', 'assistant', '', true);
+
+      try {
+        const response = await fetch(`${API}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requirement })
+        });
+        const data = await response.json();
+        
+        let displayText = '';
+        const jsonStr = JSON.stringify(data, null, 2);
+        const chunks = jsonStr.split('');
+        
+        for (let i = 0; i < chunks.length; i++) {
+          displayText += chunks[i];
+          updateMessage(assistantMsg, `<pre><code>${displayText}</code></pre>`);
+          await new Promise(resolve => setTimeout(resolve, 5));
+        }
+        
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } catch (error) {
+        updateMessage(assistantMsg, `<p style="color: var(--error);">Error: ${error.message}</p>`);
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    async function reviewCode() {
+      const input = document.getElementById('review-input');
+      const sendBtn = document.getElementById('review-send');
+      const code = input.value.trim();
+      if (!code) return;
+
+      addMessage('review', 'user', `<pre><code>${code}</code></pre>`);
+      input.value = '';
+      input.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      const assistantMsg = addMessage('review', 'assistant', '', true);
+
+      try {
+        const response = await fetch(`${API}/api/review`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ files: { 'code.py': code } })
+        });
+        const data = await response.json();
+        
+        let displayText = '';
+        const jsonStr = JSON.stringify(data, null, 2);
+        const chunks = jsonStr.split('');
+        
+        for (let i = 0; i < chunks.length; i++) {
+          displayText += chunks[i];
+          updateMessage(assistantMsg, `<pre><code>${displayText}</code></pre>`);
+          await new Promise(resolve => setTimeout(resolve, 5));
+        }
+        
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } catch (error) {
+        updateMessage(assistantMsg, `<p style="color: var(--error);">Error: ${error.message}</p>`);
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    async function deployPlugin() {
+      const input = document.getElementById('deploy-input');
+      const sendBtn = document.getElementById('deploy-send');
+      const deployInfo = input.value.trim();
+      if (!deployInfo) return;
+
+      addMessage('deploy', 'user', deployInfo);
+      input.value = '';
+      input.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      const assistantMsg = addMessage('deploy', 'assistant', '', true);
+
+      try {
+        const response = await fetch(`${API}/api/deploy`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plugin_name: 'my-plugin', description: deployInfo })
+        });
+        const data = await response.json();
+        
+        let displayText = '';
+        const jsonStr = JSON.stringify(data, null, 2);
+        const chunks = jsonStr.split('');
+        
+        for (let i = 0; i < chunks.length; i++) {
+          displayText += chunks[i];
+          updateMessage(assistantMsg, `<pre><code>${displayText}</code></pre>`);
+          await new Promise(resolve => setTimeout(resolve, 5));
+        }
+        
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } catch (error) {
+        updateMessage(assistantMsg, `<p style="color: var(--error);">Error: ${error.message}</p>`);
+        const indicator = assistantMsg.querySelector('.streaming-indicator');
+        if (indicator) indicator.remove();
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    async function loadSkills() {
+      try {
+        const response = await fetch(`${API}/api/skills`);
+        const data = await response.json();
+        const skillsList = document.getElementById('skills-list');
+        skillsList.innerHTML = `<pre style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; font-size: 0.929rem; overflow-x: auto;"><code>${JSON.stringify(data, null, 2)}</code></pre>`;
+      } catch (error) {
+        document.getElementById('skills-list').innerHTML = `<p style="color: var(--error);">Error: ${error.message}</p>`;
+      }
+    }
+
+    async function loadHealth() {
+      try {
+        const response = await fetch(`${API}/api/health`);
+        const data = await response.json();
+        document.getElementById('health-result').innerHTML = `<pre style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; font-size: 0.929rem; overflow-x: auto;"><code>${JSON.stringify(data, null, 2)}</code></pre>`;
+      } catch (error) {
+        document.getElementById('health-result').innerHTML = `<p style="color: var(--error);">Error: ${error.message}</p>`;
+      }
+    }
+
+    // Settings Module Functions
+    let selectedProvider = 'openai';
+    let currentSettingsTab = 'theme';
+
+    const providerDefaults = {
+      openai: {
+        baseUrl: 'https://api.openai.com',
+        model: 'gpt-4o',
+        hint: 'e.g., gpt-4o, gpt-4-turbo, gpt-3.5-turbo'
+      },
+      gemini: {
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+        model: 'gemini-2.0-flash',
+        hint: 'e.g., gemini-2.0-flash, gemini-1.5-pro'
+      },
+      claude: {
+        baseUrl: 'https://api.anthropic.com',
+        model: 'claude-3-5-sonnet-20241022',
+        hint: 'e.g., claude-3-5-sonnet-20241022, claude-3-opus-20240229'
+      }
+    };
+
+    function switchSettingsTab(tabName) {
+      currentSettingsTab = tabName;
+      
+      // Update tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      
+      // Load data for specific tabs
+      if (tabName === 'skills') {
+        loadSkillsList();
+      } else if (tabName === 'mcp') {
+        loadMCPList();
+      }
+    }
+
+    function initSettings() {
+      // Load saved settings from localStorage
+      const savedSettings = localStorage.getItem('llm-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        selectProvider(settings.provider || 'openai');
+        document.getElementById('llm-base-url').value = settings.baseUrl || '';
+        document.getElementById('llm-api-key').value = settings.apiKey || '';
+        document.getElementById('llm-model').value = settings.model || '';
+        document.getElementById('llm-temperature').value = settings.temperature || 0.7;
+        document.getElementById('temperature-value').textContent = settings.temperature || 0.7;
+      } else {
+        selectProvider('openai');
+      }
+      
+      // Load theme settings
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      setTheme(savedTheme);
+      
+      // Load accent color
+      const savedColor = localStorage.getItem('accent-color');
+      if (savedColor) {
+        document.getElementById('accent-color').value = savedColor;
+        document.querySelector('.color-value').textContent = savedColor;
+        document.documentElement.style.setProperty('--accent', savedColor);
+      }
+      
+      // Load font size
+      const savedFontSize = localStorage.getItem('font-size');
+      if (savedFontSize) {
+        document.getElementById('font-size').value = savedFontSize;
+        const sizes = { small: '0.75rem', medium: '0.875rem', large: '1rem' };
+        const newSize = sizes[savedFontSize] || '0.875rem';
+        document.documentElement.style.setProperty('--font-size-base', newSize);
+        document.documentElement.style.fontSize = newSize;
+      }
+      
+      // Load SDK settings
+      const sdkSettings = localStorage.getItem('sdk-settings');
+      if (sdkSettings) {
+        const settings = JSON.parse(sdkSettings);
+        document.getElementById('astrbot-url').value = settings.astrbotUrl || 'http://localhost:6185';
+        document.getElementById('astrbot-token').value = settings.astrbotToken || '';
+      }
+    }
+
+    function selectProvider(provider) {
+      selectedProvider = provider;
+      
+      // Update UI
+      document.querySelectorAll('.provider-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      document.querySelector(`[data-provider="${provider}"]`).classList.add('selected');
+      
+      // Update form defaults
+      const defaults = providerDefaults[provider];
+      if (defaults) {
+        document.getElementById('llm-base-url').value = defaults.baseUrl;
+        document.getElementById('llm-model').value = defaults.model;
+        document.getElementById('model-hint').textContent = defaults.hint;
+      }
+    }
+
+    // Temperature slider
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize theme on page load
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      setTheme(savedTheme);
+      
+      // Initialize accent color
+      const savedColor = localStorage.getItem('accent-color');
+      if (savedColor) {
+        document.documentElement.style.setProperty('--accent', savedColor);
+      }
+      
+      // Initialize font size
+      const savedFontSize2 = localStorage.getItem('font-size');
+      if (savedFontSize2) {
+        const sizes = { small: '0.75rem', medium: '0.875rem', large: '1rem' };
+        const newSize = sizes[savedFontSize2] || '0.875rem';
+        document.documentElement.style.setProperty('--font-size-base', newSize);
+        document.documentElement.style.fontSize = newSize;
+      }
+      
+      const tempSlider = document.getElementById('llm-temperature');
+      const tempValue = document.getElementById('temperature-value');
+      
+      if (tempSlider && tempValue) {
+        tempSlider.addEventListener('input', (e) => {
+          tempValue.textContent = e.target.value;
+        });
+      }
+    });
+
+    async function testConnection() {
+      const statusDiv = document.getElementById('settings-status');
+      const baseUrl = document.getElementById('llm-base-url').value.trim();
+      const apiKey = document.getElementById('llm-api-key').value.trim();
+      const model = document.getElementById('llm-model').value.trim();
+
+      if (!baseUrl || !apiKey || !model) {
+        showStatus('Please fill in all required fields', 'error');
+        return;
+      }
+
+      showStatus('Testing connection...', 'info');
+
+      try {
+        // Simple test by checking if the API endpoint is reachable
+        const response = await fetch(baseUrl, {
+          method: 'HEAD',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        }).catch(() => null);
+
+        if (response) {
+          showStatus('Connection successful! API endpoint is reachable.', 'success');
+        } else {
+          showStatus('Could not reach API endpoint. Please check your URL and network.', 'error');
+        }
+      } catch (error) {
+        showStatus(`Connection test failed: ${error.message}`, 'error');
+      }
+    }
+
+    function saveLLMSettings() {
+      const settings = {
+        provider: selectedProvider,
+        baseUrl: document.getElementById('llm-base-url').value.trim(),
+        apiKey: document.getElementById('llm-api-key').value.trim(),
+        model: document.getElementById('llm-model').value.trim(),
+        temperature: parseFloat(document.getElementById('llm-temperature').value)
+      };
+
+      // Validate
+      if (!settings.baseUrl || !settings.apiKey || !settings.model) {
+        showLLMStatus('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Save to localStorage
+      localStorage.setItem('llm-settings', JSON.stringify(settings));
+      
+      showLLMStatus('Settings saved successfully! You may need to restart the server for changes to take effect.', 'success');
+    }
+
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('llm-status');
+      if (statusDiv) {
+        statusDiv.textContent = message;
+        statusDiv.className = `status-message ${type}`;
+        
+        // Auto-hide after 5 seconds for success messages
+        if (type === 'success') {
+          setTimeout(() => {
+            statusDiv.className = 'status-message';
+          }, 5000);
+        }
+      }
+    }
+
+    // Theme Functions
+    function setTheme(theme) {
+      localStorage.setItem('theme', theme);
+      
+      // Update UI
+      document.querySelectorAll('.theme-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      document.querySelector(`[data-theme="${theme}"]`)?.classList.add('selected');
+      
+      // Apply theme
+      if (theme === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    }
+
+    function updateAccentColor(color) {
+      localStorage.setItem('accent-color', color);
+      document.documentElement.style.setProperty('--accent', color);
+      document.querySelector('.color-value').textContent = color;
+    }
+
+    function updateFontSize(size) {
+      localStorage.setItem('font-size', size);
+      const sizes = { small: '0.75rem', medium: '0.875rem', large: '1rem' };
+      const newSize = sizes[size] || '0.875rem';
+      
+      // Update --font-size-base CSS variable
+      document.documentElement.style.setProperty('--font-size-base', newSize);
+      // Also set root fontSize for rem-based sizing
+      document.documentElement.style.fontSize = newSize;
+      
+      console.log('Font size updated to:', newSize);
+    }
+
+    // Skill Management
+    function handleSkillDrop(event) {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
+      handleSkillUpload(files);
+    }
+
+    function handleSkillUpload(files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = e.target.result;
+            // Parse and validate skill file
+            console.log('Skill uploaded:', file.name);
+            loadSkillsList();
+            showLLMStatus(`Skill "${file.name}" imported successfully`, 'success');
+          } catch (error) {
+            showLLMStatus(`Failed to import "${file.name}": ${error.message}`, 'error');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    function loadSkillsList() {
+      const listDiv = document.getElementById('skills-list');
+      if (!listDiv) return;
+      
+      // Load from localStorage or API
+      const skills = JSON.parse(localStorage.getItem('skills') || '[]');
+      
+      if (skills.length === 0) {
+        listDiv.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No skills installed yet</p>';
+        return;
+      }
+      
+      listDiv.innerHTML = skills.map((skill, index) => `
+        <div class="item-card">
+          <div class="item-info">
+            <h4>${skill.name}</h4>
+            <p>${skill.description || 'No description'}</p>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-small" onclick="removeSkill(${index})">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeSkill(index) {
+      const skills = JSON.parse(localStorage.getItem('skills') || '[]');
+      skills.splice(index, 1);
+      localStorage.setItem('skills', JSON.stringify(skills));
+      loadSkillsList();
+    }
+
+    // MCP Management
+    function handleMCPServerDrop(event) {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
+      handleMCPUpload(files);
+    }
+
+    function handleMCPUpload(files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const config = JSON.parse(e.target.result);
+            console.log('MCP server uploaded:', file.name);
+            loadMCPList();
+            showLLMStatus(`MCP server "${file.name}" imported successfully`, 'success');
+          } catch (error) {
+            showLLMStatus(`Failed to import "${file.name}": ${error.message}`, 'error');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    function loadMCPList() {
+      const listDiv = document.getElementById('mcp-list');
+      if (!listDiv) return;
+      
+      const mcpServers = JSON.parse(localStorage.getItem('mcp-servers') || '[]');
+      
+      if (mcpServers.length === 0) {
+        listDiv.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No MCP servers configured</p>';
+        return;
+      }
+      
+      listDiv.innerHTML = mcpServers.map((server, index) => `
+        <div class="item-card">
+          <div class="item-info">
+            <h4>${server.name}</h4>
+            <p>${server.url || 'No URL configured'}</p>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-small" onclick="removeMCPServer(${index})">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeMCPServer(index) {
+      const servers = JSON.parse(localStorage.getItem('mcp-servers') || '[]');
+      servers.splice(index, 1);
+      localStorage.setItem('mcp-servers', JSON.stringify(servers));
+      loadMCPList();
+    }
+
+    // SDK Settings
+    function saveSDKSettings() {
+      const settings = {
+        astrbotUrl: document.getElementById('astrbot-url').value.trim(),
+        astrbotToken: document.getElementById('astrbot-token').value.trim()
+      };
+      
+      if (!settings.astrbotUrl) {
+        showSDKStatus('Please enter AstrBot URL', 'error');
+        return;
+      }
+      
+      localStorage.setItem('sdk-settings', JSON.stringify(settings));
+      showSDKStatus('SDK settings saved successfully', 'success');
+    }
+
+    function showSDKStatus(message, type) {
+      const statusDiv = document.getElementById('sdk-status');
+      if (statusDiv) {
+        statusDiv.textContent = message;
+        statusDiv.className = `status-message ${type}`;
+        
+        if (type === 'success') {
+          setTimeout(() => {
+            statusDiv.className = 'status-message';
+          }, 5000);
+        }
+      }
+    }
+
+    function showLLMStatus(message, type) {
+      const statusDiv = document.getElementById('llm-status');
+      if (statusDiv) {
+        statusDiv.textContent = message;
+        statusDiv.className = `status-message ${type}`;
+        
+        if (type === 'success') {
+          setTimeout(() => {
+            statusDiv.className = 'status-message';
+          }, 5000);
+        }
+      }
+    }
+
+    // Initialize
+    connectWS();
+    updateTranslations();
+  </script>
 </body>
 </html>

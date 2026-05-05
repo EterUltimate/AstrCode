@@ -16,6 +16,7 @@
 - [系统架构](#系统架构)
 - [核心功能](#核心功能)
 - [快速开始](#快速开始)
+- [LLM 配置](#llm-配置)
 - [API 参考](#api-参考)
 - [WebSocket 事件](#websocket-事件)
 - [项目结构](#项目结构)
@@ -107,7 +108,7 @@ WebSocket → CodeX-like Dashboard
 
 - Go 1.21+
 - **AstrBot Runtime**（运行在 `http://localhost:6185`）- [安装指南](https://github.com/AstrBotDevs/AstrBot)
-- **LLM 服务**（Ollama/OpenAI 兼容接口）
+- **LLM 服务**（支持 OpenAI/Gemini/Claude API）
 - Node.js 18+ (前端开发)
 
 ### 开发环境设置
@@ -120,15 +121,45 @@ cd AstrCode
 # 2. 下载依赖
 go mod download
 
-# 3. 编译后端
-go build -o bin/astrcode cmd/server/main.go
+# 3. 配置 LLM (选择以下一种方式)
+
+# 方式 A: 使用配置文件 (推荐)
+cp configs/config.example.yaml configs/config.yaml
+# 编辑 configs/config.yaml，设置你的 LLM 提供商和 API Key
+
+# 方式 B: 使用命令行参数
+# OpenAI
+./bin/astrcode \
+  -llm-provider openai \
+  -llm-url https://api.openai.com \
+  -llm-key sk-your-api-key \
+  -llm-model gpt-4o
+
+# Google Gemini
+./bin/astrcode \
+  -llm-provider gemini \
+  -llm-url https://generativelanguage.googleapis.com/v1beta \
+  -llm-key your-gemini-api-key \
+  -llm-model gemini-2.0-flash
+
+# Anthropic Claude
+./bin/astrcode \
+  -llm-provider claude \
+  -llm-url https://api.anthropic.com \
+  -llm-key your-claude-api-key \
+  -llm-model claude-3-5-sonnet-20241022
+
+# 本地部署 (Ollama)
+./bin/astrcode \
+  -llm-provider openai \
+  -llm-url http://localhost:11434 \
+  -llm-key "" \
+  -llm-model qwen2.5
 
 # 4. 启动开发服务器
 ./bin/astrcode \
   -addr :8080 \
   -astrbot-url http://localhost:6185 \
-  -llm-url http://localhost:11434 \
-  -llm-model qwen2.5 \
   -static-dir ./web
 ```
 
@@ -176,18 +207,121 @@ go build -o bin/astrcode cmd/server/main.go
 - ✅ 代码结构清晰，符合规范
 - 📝 生成改进后的代码
 
+---
+
+## LLM 配置
+
+AstrCode 支持三种主流 LLM 提供商，你可以根据需求选择合适的 API。
+
+### 🎯 支持的提供商
+
+#### 1. OpenAI (推荐)
+- **适用场景**: 通用任务、代码生成、插件开发
+- **模型**: gpt-4o, gpt-4-turbo, gpt-3.5-turbo
+- **兼容服务**: OpenAI, Azure OpenAI, Ollama, LM Studio, LocalAI, vLLM
+- **配置**:
+  ```yaml
+  llm:
+    provider: "openai"
+    base_url: "https://api.openai.com"
+    api_key: "sk-your-api-key"
+    model: "gpt-4o"
+  ```
+
+#### 2. Google Gemini
+- **适用场景**: 长文本处理、多模态任务、大上下文窗口
+- **模型**: gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash
+- **特点**: 免费额度充足，支持高达 2M tokens 上下文
+- **配置**:
+  ```yaml
+  llm:
+    provider: "gemini"
+    base_url: "https://generativelanguage.googleapis.com/v1beta"
+    api_key: "your-gemini-api-key"
+    model: "gemini-2.0-flash"
+  ```
+
+#### 3. Anthropic Claude
+- **适用场景**: 复杂推理、长篇文档、高质量输出
+- **模型**: claude-3-5-sonnet, claude-3-opus, claude-3-haiku
+- **特点**: 优秀的长文本处理能力，更好的指令遵循
+- **配置**:
+  ```yaml
+  llm:
+    provider: "claude"
+    base_url: "https://api.anthropic.com"
+    api_key: "your-claude-api-key"
+    model: "claude-3-5-sonnet-20241022"
+  ```
+
+### 📖 本地部署选项
+
+如果你希望完全控制数据隐私,可以使用本地部署:
+
+#### Ollama
+```bash
+# 安装 Ollama: https://ollama.ai
+ollama pull qwen2.5
+
+# 配置 AstrCode
+llm:
+  provider: "openai"
+  base_url: "http://localhost:11434"
+  api_key: ""  # Ollama 不需要 API Key
+  model: "qwen2.5"
+```
+
+#### LM Studio
+```bash
+# 下载 LM Studio: https://lmstudio.ai
+# 启动本地服务器后配置:
+llm:
+  provider: "openai"
+  base_url: "http://localhost:1234/v1"
+  api_key: "lm-studio"  # 任意字符串
+  model: "local-model-name"
+```
+
+### 💡 如何选择适合的提供商?
+
+- **预算有限**: 使用 Gemini (免费额度充足) 或本地部署 Ollama
+- **追求质量**: 使用 Claude 3.5 Sonnet 或 GPT-4o
+- **需要速度**: 使用 Gemini 2.0 Flash 或 Claude 3 Haiku
+- **数据隐私**: 使用本地部署 (Ollama/LM Studio)
+
+### 🔒 安全性提示
+
+- API Key 仅存储在配置文件中,不会上传到任何地方
+- 建议不要将包含 API Key 的配置文件提交到 Git
+- 可以使用环境变量存储敏感信息
+- 定期轮换 API Key
+
 ### Windows (MSI Installer)
 
-1. 下载 `AstrCode-0.4.0-x64.msi` 从 [Releases](https://github.com/EterUltimate/AstrCode/releases)
-2. 双击运行安装程序
-3. 选择安装路径（默认：`C:\Program Files\AstrCode`）
-4. 完成安装后，从开始菜单启动或运行：
-   ```batch
-   "C:\Program Files\AstrCode\bin\start.bat"
-   ```
-5. 浏览器打开 `http://localhost:8080`
+#### 快速构建 MSI
 
-**卸载**：通过控制面板 → 程序和功能 → 卸载 AstrCode
+```powershell
+# 运行前置条件检查
+.\scripts\test-msi-build.ps1
+
+# 构建 MSI
+.\scripts\build-msi.ps1
+
+# 或使用 Makefile
+make msi
+```
+
+构建完成后,MSI 文件位于 `dist\AstrCode-{version}-x64.msi`
+
+#### 安装和使用
+
+1. **安装**: 双击 MSI 文件,按照向导完成安装
+2. **启动**: 开始菜单 → AstrCode → AstrCode Dashboard
+3. **访问**: 浏览器打开 `http://localhost:8080`
+
+**配置文件位置**: `C:\Program Files\AstrCode\configs\config.yaml`
+
+**卸载**: 控制面板 → 程序和功能 → AstrCode → 卸载
 
 ### Docker 运行
 docker build -t astrcode:latest .
@@ -238,6 +372,41 @@ curl -X POST http://localhost:8080/api/task \
 curl http://localhost:8080/api/task/task_1777190257056353800
 ```
 
+### 更多 API 测试示例
+
+#### 插件生成
+
+```bash
+curl -X POST http://localhost:8080/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requirement": "创建一个待办事项管理插件,支持添加、删除、查询待办"
+  }'
+```
+
+#### 代码审查
+
+```bash
+curl -X POST http://localhost:8080/api/review \
+  -H "Content-Type: application/json" \
+  -d '{
+    "files": {
+      "main.py": "import asyncio\n\nclass TodoPlugin:\n    def __init__(self):\n        self.todos = []"
+    }
+  }'
+```
+
+#### PowerShell 示例
+
+```powershell
+# 健康检查
+Invoke-RestMethod -Uri "http://localhost:8080/api/health" -Method Get
+
+# 插件生成
+$body = @{ requirement = "创建天气查询插件" } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:8080/api/generate" -Method Post -Body $body -ContentType "application/json"
+```
+
 ---
 
 ## WebSocket 事件
@@ -280,6 +449,76 @@ ws.onmessage = (event) => {
   }
 };
 ```
+
+---
+
+## 设置页面功能
+
+AstrCode 提供完整的图形化设置界面,点击侧边栏 ⚙️ Settings 即可访问。包含 5 个主要模块:
+
+### 🎨 主题设置 (Theme Tab)
+- **外观预设**: Dark / Light / Auto (跟随系统)
+- **强调色**: 自定义颜色选择器,实时预览
+- **字体大小**: Small (13px) / Medium (14px) / Large (16px)
+- 所有配置自动保存到 localStorage
+
+### 🔌 LLM API 配置 (LLM API Tab)
+- **提供商选择**: OpenAI / Gemini / Claude 卡片式选择
+- **配置表单**:
+  - Base URL (API端点)
+  - API Key (密码输入)
+  - Model (模型名称)
+  - Temperature (滑块 0-2)
+- **一键测试连接**: 验证 API 连通性
+- **智能默认值**: 点击提供商卡片自动填充最佳配置
+
+### ⚡ Skills 管理 (Skills Tab)
+- **文件导入**:
+  - 拖放上传 `.yaml`, `.yml`, `.json` 文件
+  - 点击"Browse Files"按钮多选
+- **技能列表**: 
+  - 显示已安装技能的名称和描述
+  - 一键删除不需要的技能
+  - 空状态提示
+
+### 🔗 MCP 服务器管理 (MCP Tab)
+- **服务器配置导入**: 支持 `.json`, `.yaml`, `.yml` 格式
+- **服务器列表**: 显示已配置的 MCP 服务器名称和 URL
+- **一键删除**: 移除不再使用的服务器
+
+### 🛠️ SDK 配置 (SDK Tab)
+- **AstrBot URL**: 运行时地址 (默认: `http://localhost:6185`)
+- **AstrBot Token**: 认证令牌 (可选)
+- 配置 AstrCode 与 AstrBot 运行时的通信参数
+
+### 💾 数据存储
+
+所有配置存储在浏览器 localStorage,完全本地化:
+```javascript
+{
+  "theme": "dark",
+  "accent-color": "#7c3aed",
+  "font-size": "medium",
+  "llm-settings": {
+    "provider": "openai",
+    "baseUrl": "https://api.openai.com",
+    "apiKey": "sk-...",
+    "model": "gpt-4o",
+    "temperature": 0.7
+  },
+  "skills": [...],
+  "mcp-servers": [...],
+  "sdk-settings": {
+    "astrbotUrl": "http://localhost:6185",
+    "astrbotToken": ""
+  }
+}
+```
+
+**优势**:
+- ✅ 完全本地存储,保护隐私
+- ✅ 持久化,刷新不丢失
+- ✅ 快速读取,无网络延迟
 
 ---
 
@@ -371,7 +610,36 @@ AstrCode/
 
 ---
 
-## 构建与部署
+## Windows MSI 安装包
+
+### 快速构建
+
+```powershell
+# 运行前置条件检查
+.\scripts\test-msi-build.ps1
+
+# 构建 MSI
+.\scripts\build-msi.ps1
+
+# 或使用 Makefile
+make msi
+```
+
+构建完成后,MSI 文件位于 `dist\AstrCode-{version}-x64.msi`
+
+### 安装和使用
+
+1. **安装**: 双击 MSI 文件,按照向导完成安装
+2. **启动**: 开始菜单 → AstrCode → AstrCode Dashboard
+3. **访问**: 浏览器打开 `http://localhost:8080`
+
+### 配置文件位置
+
+`C:\Program Files\AstrCode\configs\config.yaml`
+
+### 卸载
+
+控制面板 → 程序和功能 → AstrCode → 卸载
 
 ### 本地构建
 
