@@ -499,6 +499,31 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
       font-size: 1.143rem;
     }
 
+    .smart-question-btn {
+      position: absolute;
+      right: 52px;
+      bottom: 8px;
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 1.143rem;
+    }
+
+    .smart-question-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: scale(1.05);
+    }
+
     .send-button:hover {
       background: var(--accent-hover);
       transform: scale(1.05);
@@ -516,6 +541,206 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
       margin-top: 8px;
       font-size: 0.786rem;
       color: var(--text-muted);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      width: 90%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.286rem;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.714rem;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-description {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      font-size: 0.929rem;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+      font-size: 0.929rem;
+      font-weight: 500;
+    }
+
+    .form-group.required label::after {
+      content: ' *';
+      color: var(--error);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 0.929rem;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .tips-box {
+      background: var(--accent-bg);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .tips-box h4 {
+      margin: 0 0 12px 0;
+      color: var(--accent);
+      font-size: 0.929rem;
+    }
+
+    .tips-box ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-secondary);
+      font-size: 0.857rem;
+      line-height: 1.8;
+    }
+
+    .tips-box li {
+      margin-bottom: 4px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.929rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
     }
 
     /* API Endpoints Module */
@@ -1193,6 +1418,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
             <div class="input-container">
               <div class="input-box">
                 <textarea class="chat-input" id="chat-input" placeholder="Ask anything about your codebase..." data-i18n-placeholder="chatPlaceholder" rows="1"></textarea>
+                <button class="smart-question-btn" onclick="openSmartQuestionHelper()" title="智能提问助手">💡</button>
                 <button class="send-button" onclick="sendChat()" id="chat-send">↑</button>
               </div>
               <div class="input-footer">
@@ -2423,6 +2649,119 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
     // Initialize
     connectWS();
     updateTranslations();
+
+    // ===== Smart Question Helper =====
+    function openSmartQuestionHelper() {
+      const modal = document.getElementById('smart-question-modal');
+      if (modal) {
+        modal.classList.add('active');
+      }
+    }
+
+    function closeSmartQuestionHelper() {
+      const modal = document.getElementById('smart-question-modal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    function applySmartQuestionTemplate() {
+      const context = document.getElementById('sq-context').value.trim();
+      const problem = document.getElementById('sq-problem').value.trim();
+      const attempts = document.getElementById('sq-attempts').value.trim();
+      const goal = document.getElementById('sq-goal').value.trim();
+
+      if (!problem) {
+        alert('请至少描述你遇到的问题');
+        return;
+      }
+
+      // 构建高质量问题
+      let question = '';
+      
+      if (goal) {
+        question += `【目标】${goal}\n\n`;
+      }
+      
+      if (context) {
+        question += `【背景】${context}\n\n`;
+      }
+      
+      question += `【问题】${problem}\n\n`;
+      
+      if (attempts) {
+        question += `【已尝试】${attempts}\n\n`;
+      }
+      
+      question += `【期望结果】请帮我解决这个问题，并提供详细的步骤说明。`;
+
+      // 填充到输入框
+      const chatInput = document.getElementById('chat-input');
+      if (chatInput) {
+        chatInput.value = question;
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+      }
+
+      closeSmartQuestionHelper();
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+      const modal = document.getElementById('smart-question-modal');
+      if (e.target === modal) {
+        closeSmartQuestionHelper();
+      }
+    });
   </script>
+
+  <!-- Smart Question Helper Modal -->
+  <div id="smart-question-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💡 智能提问助手</h3>
+        <button class="modal-close" onclick="closeSmartQuestionHelper()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">基于《提问的智慧》，帮助你构建更清晰、更有效的问题。</p>
+        
+        <div class="form-group">
+          <label for="sq-goal">🎯 你的目标是什么？</label>
+          <input type="text" id="sq-goal" placeholder="例如：创建一个天气查询插件" />
+        </div>
+
+        <div class="form-group">
+          <label for="sq-context">📋 相关背景信息</label>
+          <textarea id="sq-context" rows="2" placeholder="例如：我正在开发 AstrBot 插件，使用 Python"></textarea>
+        </div>
+
+        <div class="form-group required">
+          <label for="sq-problem">❓ 你遇到了什么问题？</label>
+          <textarea id="sq-problem" rows="3" placeholder="详细描述问题现象、错误信息等" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="sq-attempts">🔧 你已经尝试过什么？</label>
+          <textarea id="sq-attempts" rows="2" placeholder="例如：查阅了文档、搜索了 Google、尝试了 XX 方法"></textarea>
+        </div>
+
+        <div class="tips-box">
+          <h4>💡 提问小贴士：</h4>
+          <ul>
+            <li>✅ 提供具体的错误信息和日志</li>
+            <li>✅ 说明你的环境和版本信息</li>
+            <li>✅ 描述你已尝试的解决方法</li>
+            <li>✅ 明确你期望得到的帮助</li>
+            <li>❌ 避免模糊的描述（如“不工作”）</li>
+            <li>❌ 不要要求私人邮件回复</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeSmartQuestionHelper()">取消</button>
+        <button class="btn-primary" onclick="applySmartQuestionTemplate()">生成问题</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
