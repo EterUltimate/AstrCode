@@ -2,6 +2,7 @@ package hook
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -129,14 +130,14 @@ func TestHookRegistry_Timeout(t *testing.T) {
 func TestHookRegistry_NonBlocking(t *testing.T) {
 	registry := NewHookRegistry()
 
-	executed := false
+	var executed int32 // 使用 atomic 保证线程安全
 	registry.Register(HookBeforeToolUse, RegisteredHook{
 		ID:   "async-hook",
 		Name: "Async Hook",
 		Mode: HookModeNonBlocking,
 		Handler: func(ctx context.Context, event HookEvent) HookResult {
 			time.Sleep(50 * time.Millisecond)
-			executed = true
+			atomic.StoreInt32(&executed, 1)
 			return HookResult{Allowed: true}
 		},
 		Timeout: 1 * time.Second,
@@ -158,7 +159,7 @@ func TestHookRegistry_NonBlocking(t *testing.T) {
 	// 等待异步执行完成
 	time.Sleep(100 * time.Millisecond)
 
-	if !executed {
+	if atomic.LoadInt32(&executed) != 1 {
 		t.Error("Async hook should have been executed")
 	}
 
