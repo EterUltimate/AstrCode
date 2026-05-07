@@ -70,6 +70,9 @@ func NewServer(ag *agent.Agent, hub *Hub, store *model.TaskStore, addr string) *
 	
 	// Phase 6: WebSocket 统计 API
 	mux.HandleFunc("/api/ws/stats", s.handleWSStats)
+	
+	// Phase 6: Hook 调试 API
+	mux.HandleFunc("/api/hook/debug", s.handleHookDebug)
 
 	// 健康检查
 	mux.HandleFunc("/api/health", s.handleHealth)
@@ -410,6 +413,20 @@ func (s *Server) handleWSStats(w http.ResponseWriter, r *http.Request) {
 	if encodeErr := json.NewEncoder(w).Encode(stats); encodeErr != nil {
 		_ = encodeErr
 	}
+}
+
+// Phase 6: handleHookDebug Hook 调试信息（TODO: 需要集成 DebugHook）
+func (s *Server) handleHookDebug(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
+	// TODO: 从 Agent 获取 DebugHook 实例
+	// debugHook := s.agent.GetDebugHook()
+	// stats := debugHook.GetStats()
+	
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "placeholder",
+		"message": "Hook debug API - integration pending",
+	})
 }
 
 // ============================================================
