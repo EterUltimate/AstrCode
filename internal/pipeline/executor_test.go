@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -167,6 +168,7 @@ func TestExecutor_ExecuteBatch_Failure(t *testing.T) {
 func TestExecutor_ExecuteBatch_Priority(t *testing.T) {
 	executor := NewExecutor(DefaultConfig())
 
+	var mu sync.Mutex
 	executionOrder := []string{}
 
 	tasks := []*Task{
@@ -174,7 +176,9 @@ func TestExecutor_ExecuteBatch_Priority(t *testing.T) {
 			ID:       "low_priority",
 			Priority: 1,
 			Execute: func(ctx context.Context) (interface{}, error) {
+				mu.Lock()
 				executionOrder = append(executionOrder, "low")
+				mu.Unlock()
 				return nil, nil
 			},
 		},
@@ -182,7 +186,9 @@ func TestExecutor_ExecuteBatch_Priority(t *testing.T) {
 			ID:       "high_priority",
 			Priority: 10,
 			Execute: func(ctx context.Context) (interface{}, error) {
+				mu.Lock()
 				executionOrder = append(executionOrder, "high")
+				mu.Unlock()
 				return nil, nil
 			},
 		},
@@ -190,7 +196,9 @@ func TestExecutor_ExecuteBatch_Priority(t *testing.T) {
 			ID:       "medium_priority",
 			Priority: 5,
 			Execute: func(ctx context.Context) (interface{}, error) {
+				mu.Lock()
 				executionOrder = append(executionOrder, "medium")
+				mu.Unlock()
 				return nil, nil
 			},
 		},
