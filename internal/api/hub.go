@@ -305,7 +305,7 @@ func (h *Hub) writePump(client *Client) {
 		case event, ok := <-client.send:
 			if !ok {
 				// 通道已关闭
-				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				_ = client.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
@@ -349,6 +349,6 @@ func (h *Hub) handleClientMessage(client *Client, message []byte) {
 		}
 	case "ping":
 		// 响应 pong
-		client.conn.WriteJSON(map[string]string{"type": "pong"})
+		_ = client.conn.WriteJSON(map[string]string{"type": "pong"})
 	}
 }

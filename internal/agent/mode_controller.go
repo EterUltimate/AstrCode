@@ -95,6 +95,7 @@ func (mc *ModeController) ValidatePlanExit(planContent string) error {
 	if !hasConsiderations {
 		// 这里可以记录日志或返回警告，但不阻止退出
 		// log.Println("Warning: plan may not consider edge cases")
+		// 空分支是预期的，用于未来扩展
 	}
 
 	return nil

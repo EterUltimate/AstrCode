@@ -423,7 +423,7 @@ func (s *Server) handleHookDebug(w http.ResponseWriter, r *http.Request) {
 	// debugHook := s.agent.GetDebugHook()
 	// stats := debugHook.GetStats()
 
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "placeholder",
 		"message": "Hook debug API - integration pending",
 	})
