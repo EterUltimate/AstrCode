@@ -34,17 +34,17 @@ type SlashCommand struct {
 
 // Middleware 中间件
 type Middleware struct {
-	Name    string
-	Handler func(ctx context.Context, data interface{}) (interface{}, error)
+	Name     string
+	Handler  func(ctx context.Context, data interface{}) (interface{}, error)
 	Priority int // 优先级（越小越先执行）
 }
 
 // Registry 扩展注册表
 type Registry struct {
-	mu           sync.RWMutex
-	customTools  map[string]*CustomTool
+	mu            sync.RWMutex
+	customTools   map[string]*CustomTool
 	slashCommands map[string]*SlashCommand
-	middlewares  []*Middleware
+	middlewares   []*Middleware
 }
 
 // NewRegistry 创建新的扩展注册表
@@ -182,10 +182,10 @@ func (r *Registry) RegisterMiddleware(mw *Middleware) error {
 	}
 
 	r.middlewares = append(r.middlewares, mw)
-	
+
 	// 按优先级排序
 	r.sortMiddlewares()
-	
+
 	return nil
 }
 
@@ -213,17 +213,17 @@ func (r *Registry) sortMiddlewares() {
 // ExecuteMiddlewareChain 执行中间件链
 func (r *Registry) ExecuteMiddlewareChain(ctx context.Context, data interface{}) (interface{}, error) {
 	middlewares := r.GetMiddlewares()
-	
+
 	current := data
 	var err error
-	
+
 	for _, mw := range middlewares {
 		current, err = mw.Handler(ctx, current)
 		if err != nil {
 			return nil, fmt.Errorf("middleware '%s' failed: %w", mw.Name, err)
 		}
 	}
-	
+
 	return current, nil
 }
 

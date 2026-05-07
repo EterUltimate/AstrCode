@@ -15,10 +15,10 @@ const (
 
 // Config 模式配置
 type Config struct {
-	DefaultMode       RunMode // 默认模式
-	AllowSwitch       bool    // 是否允许切换模式
-	RequireApproval   bool    // 计划模式是否需要用户确认
-	AutoGeneratePlan  bool    // 是否自动生成计划
+	DefaultMode      RunMode // 默认模式
+	AllowSwitch      bool    // 是否允许切换模式
+	RequireApproval  bool    // 计划模式是否需要用户确认
+	AutoGeneratePlan bool    // 是否自动生成计划
 }
 
 // DefaultConfig 返回默认配置
@@ -69,7 +69,7 @@ func (m *Manager) SetMode(mode RunMode) error {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.mode = mode
 
 	return nil
@@ -99,7 +99,7 @@ func (m *Manager) IsPlanMode() bool {
 func (m *Manager) ShouldRequireApproval() bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	return m.mode == ModePlan && m.config.RequireApproval
 }
 
@@ -107,14 +107,14 @@ func (m *Manager) ShouldRequireApproval() bool {
 func (m *Manager) ShouldAutoGeneratePlan() bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	return m.mode == ModePlan && m.config.AutoGeneratePlan
 }
 
 // GetModeDescription 获取模式描述
 func (m *Manager) GetModeDescription() string {
 	mode := m.GetMode()
-	
+
 	switch mode {
 	case ModeCode:
 		return "Code Mode: Execute tasks directly without planning"
@@ -128,7 +128,7 @@ func (m *Manager) GetModeDescription() string {
 // Toggle 切换模式
 func (m *Manager) Toggle() error {
 	current := m.GetMode()
-	
+
 	if current == ModeCode {
 		return m.SwitchToPlan()
 	} else {

@@ -24,6 +24,7 @@ import (
 	"github.com/EterUltimate/astrcode/internal/cache"
 	"github.com/EterUltimate/astrcode/internal/hook"
 	"github.com/EterUltimate/astrcode/internal/llm"
+	"github.com/EterUltimate/astrcode/internal/mode"
 	"github.com/EterUltimate/astrcode/internal/model"
 	"github.com/EterUltimate/astrcode/internal/prompt"
 	"github.com/EterUltimate/astrcode/internal/rag"
@@ -43,13 +44,19 @@ type Agent struct {
 	planCache    *cache.MemoryCache
 	sdkClient    *sdk.AstrBotClient
 	promptEngine *prompt.Engine
+	promptComposer *prompt.Composer // Phase 3: Prompt 组装器
 	llmClient    *llm.Client
 	eventSink    skill.EventSink    // Phase 4: 事件回调
 	hookRegistry *hook.HookRegistry // Hook 系统注册表
+	modeCtrl     *ModeController    // 运行模式控制器
 }
 
 // NewAgent 创建新的 Agent
 func NewAgent(llmClient *llm.Client, sdkClient *sdk.AstrBotClient) *Agent {
+	modeManager := mode.NewManager(mode.DefaultConfig())
+	promptCache := prompt.NewPromptCache(5 * time.Minute)
+	promptComposer := prompt.NewComposer(promptCache)
+	
 	return &Agent{
 		retriever:    skill.NewRetriever(),
 		planner:      skill.NewPlanner(llmClient),
@@ -60,14 +67,20 @@ func NewAgent(llmClient *llm.Client, sdkClient *sdk.AstrBotClient) *Agent {
 		planCache:    cache.NewMemoryCache(),
 		sdkClient:    sdkClient,
 		promptEngine: prompt.NewEngine(),
+		promptComposer: promptComposer,
 		llmClient:    llmClient,
 		hookRegistry: hook.NewHookRegistry(),
+		modeCtrl:     NewModeController(modeManager),
 	}
 }
 
 // NewAgentWithVector 创建带向量检索的 Agent
 func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, embedding *rag.EmbeddingClient, store rag.VectorStore) *Agent {
 	index := rag.NewSkillIndex(store, embedding)
+	modeManager := mode.NewManager(mode.DefaultConfig())
+	promptCache := prompt.NewPromptCache(5 * time.Minute)
+	promptComposer := prompt.NewComposer(promptCache)
+	
 	return &Agent{
 		retriever:    skill.NewRetrieverWithIndex(index),
 		planner:      skill.NewPlanner(llmClient),
@@ -78,8 +91,10 @@ func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, emb
 		planCache:    cache.NewMemoryCache(),
 		sdkClient:    sdkClient,
 		promptEngine: prompt.NewEngine(),
+		promptComposer: promptComposer,
 		llmClient:    llmClient,
 		hookRegistry: hook.NewHookRegistry(),
+		modeCtrl:     NewModeController(modeManager),
 	}
 }
 
@@ -97,6 +112,31 @@ func (a *Agent) GetHookRegistry() *hook.HookRegistry {
 // RegisterHook 注册钩子（便捷方法）
 func (a *Agent) RegisterHook(hookType hook.HookType, registeredHook hook.RegisteredHook) {
 	a.hookRegistry.Register(hookType, registeredHook)
+}
+
+// GetModeController 获取模式控制器
+func (a *Agent) GetModeController() *ModeController {
+	return a.modeCtrl
+}
+
+// IsToolAllowed 检查工具是否允许使用（根据当前模式）
+func (a *Agent) IsToolAllowed(toolName string) bool {
+	if a.modeCtrl == nil {
+		return true // 默认允许
+	}
+	return a.modeCtrl.IsToolAllowed(toolName)
+}
+
+// GetPromptComposer 获取 Prompt 组装器
+func (a *Agent) GetPromptComposer() *prompt.Composer {
+	return a.promptComposer
+}
+
+// RegisterPromptContributor 注册 Prompt 贡献者（便捷方法）
+func (a *Agent) RegisterPromptContributor(contributor prompt.PromptContributor) {
+	if a.promptComposer != nil {
+		a.promptComposer.RegisterContributor(contributor)
+	}
 }
 
 // RegisterSkill 注册 Skill

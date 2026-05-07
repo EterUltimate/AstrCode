@@ -61,7 +61,7 @@ func TestExecutor_ExecuteBatch_Parallel(t *testing.T) {
 			Execute: func(ctx context.Context) (interface{}, error) {
 				// 增加并发计数
 				current := atomic.AddInt32(&concurrentCount, 1)
-				
+
 				// 更新最大并发数
 				for {
 					old := atomic.LoadInt32(&maxConcurrent)
@@ -69,13 +69,13 @@ func TestExecutor_ExecuteBatch_Parallel(t *testing.T) {
 						break
 					}
 				}
-				
+
 				// 模拟工作
 				time.Sleep(50 * time.Millisecond)
-				
+
 				// 减少并发计数
 				atomic.AddInt32(&concurrentCount, -1)
-				
+
 				return fmt.Sprintf("result_%d", idx), nil
 			},
 		}
@@ -105,7 +105,7 @@ func TestExecutor_ExecuteBatch_Retry(t *testing.T) {
 	executor := NewExecutor(config)
 
 	attemptCount := 0
-	
+
 	task := &Task{
 		ID:       "retry_task",
 		Priority: 1,
@@ -168,7 +168,7 @@ func TestExecutor_ExecuteBatch_Priority(t *testing.T) {
 	executor := NewExecutor(DefaultConfig())
 
 	executionOrder := []string{}
-	
+
 	tasks := []*Task{
 		{
 			ID:       "low_priority",

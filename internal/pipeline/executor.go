@@ -60,7 +60,7 @@ func NewExecutor(config *Config) *Executor {
 	if config == nil {
 		config = DefaultConfig()
 	}
-	
+
 	return &Executor{
 		config: config,
 		sem:    make(chan struct{}, config.MaxConcurrency),
@@ -85,18 +85,18 @@ func (e *Executor) ExecuteBatch(ctx context.Context, tasks []*Task) (*BatchResul
 		if end > len(sortedTasks) {
 			end = len(sortedTasks)
 		}
-		
+
 		batch := sortedTasks[i:end]
 		batchResult, err := e.executeBatch(ctx, batch)
 		if err != nil {
 			return nil, fmt.Errorf("batch execution failed: %w", err)
 		}
-		
+
 		allResults = append(allResults, batchResult.Results...)
 	}
 
 	totalTime := time.Since(startTime)
-	
+
 	// 统计成功/失败
 	success := 0
 	failed := 0
@@ -124,17 +124,17 @@ func (e *Executor) executeBatch(ctx context.Context, tasks []*Task) (*BatchResul
 
 	for i, task := range tasks {
 		wg.Add(1)
-		
+
 		go func(index int, t *Task) {
 			defer wg.Done()
-			
+
 			// 获取信号量（控制并发）
 			e.sem <- struct{}{}
 			defer func() { <-e.sem }()
-			
+
 			// 执行任务（带重试）
 			result := e.executeWithRetry(ctx, t)
-			
+
 			mu.Lock()
 			results[index] = result
 			mu.Unlock()
@@ -142,7 +142,7 @@ func (e *Executor) executeBatch(ctx context.Context, tasks []*Task) (*BatchResul
 	}
 
 	wg.Wait()
-	
+
 	return &BatchResult{
 		Results: results,
 	}, nil
@@ -151,17 +151,17 @@ func (e *Executor) executeBatch(ctx context.Context, tasks []*Task) (*BatchResul
 // executeWithRetry 执行单个任务（带重试）
 func (e *Executor) executeWithRetry(ctx context.Context, task *Task) *Result {
 	var lastErr error
-	
+
 	for attempt := 1; attempt <= e.config.RetryCount; attempt++ {
 		startTime := time.Now()
-		
+
 		// 创建带超时的上下文
 		taskCtx, cancel := context.WithTimeout(ctx, e.config.Timeout)
 		result, err := task.Execute(taskCtx)
 		cancel()
-		
+
 		duration := time.Since(startTime)
-		
+
 		if err == nil {
 			return &Result{
 				TaskID:   task.ID,
@@ -171,9 +171,9 @@ func (e *Executor) executeWithRetry(ctx context.Context, task *Task) *Result {
 				Attempt:  attempt,
 			}
 		}
-		
+
 		lastErr = err
-		
+
 		// 如果不是最后一次尝试，等待后重试
 		if attempt < e.config.RetryCount {
 			backoff := time.Duration(attempt) * 100 * time.Millisecond
@@ -191,7 +191,7 @@ func (e *Executor) executeWithRetry(ctx context.Context, task *Task) *Result {
 			}
 		}
 	}
-	
+
 	return &Result{
 		TaskID:   task.ID,
 		Result:   nil,
@@ -205,7 +205,7 @@ func (e *Executor) executeWithRetry(ctx context.Context, task *Task) *Result {
 func (e *Executor) sortByPriority(tasks []*Task) []*Task {
 	sorted := make([]*Task, len(tasks))
 	copy(sorted, tasks)
-	
+
 	// 简单的冒泡排序（任务数量通常不大）
 	for i := 0; i < len(sorted)-1; i++ {
 		for j := 0; j < len(sorted)-i-1; j++ {
@@ -214,7 +214,7 @@ func (e *Executor) sortByPriority(tasks []*Task) []*Task {
 			}
 		}
 	}
-	
+
 	return sorted
 }
 

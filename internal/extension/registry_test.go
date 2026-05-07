@@ -64,7 +64,7 @@ func TestRegistry_UnregisterCustomTool(t *testing.T) {
 	reg := NewRegistry()
 
 	reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
-	
+
 	err := reg.UnregisterCustomTool("tool1")
 	if err != nil {
 		t.Fatalf("UnregisterCustomTool failed: %v", err)
@@ -141,16 +141,16 @@ func TestRegistry_RegisterMiddleware(t *testing.T) {
 	reg.RegisterMiddleware(mw3)
 
 	middlewares := reg.GetMiddlewares()
-	
+
 	// 验证按优先级排序
 	if middlewares[0].Name != "mw2" {
 		t.Errorf("Expected first middleware 'mw2' (priority 1), got '%s'", middlewares[0].Name)
 	}
-	
+
 	if middlewares[1].Name != "mw1" {
 		t.Errorf("Expected second middleware 'mw1' (priority 2), got '%s'", middlewares[1].Name)
 	}
-	
+
 	if middlewares[2].Name != "mw3" {
 		t.Errorf("Expected third middleware 'mw3' (priority 3), got '%s'", middlewares[2].Name)
 	}
