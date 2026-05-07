@@ -94,7 +94,7 @@ func (c *SkillsContributor) Contribute(ctx context.Context) ([]PromptBlock, erro
 			Priority:   800,
 			CacheLevel: CacheLevelSemiStable,
 			Metadata: map[string]string{
-				"type":       "skills",
+				"type":        "skills",
 				"skill_count": fmt.Sprintf("%d", len(c.Skills)),
 			},
 		},
@@ -103,7 +103,7 @@ func (c *SkillsContributor) Contribute(ctx context.Context) ([]PromptBlock, erro
 
 // ContextContributor 上下文贡献者（对话历史）
 type ContextContributor struct {
-	Messages []Message
+	Messages    []Message
 	MaxMessages int // 最大消息数
 }
 
@@ -154,7 +154,7 @@ func (c *ContextContributor) Contribute(ctx context.Context) ([]PromptBlock, err
 			Priority:   500,
 			CacheLevel: CacheLevelDynamic,
 			Metadata: map[string]string{
-				"type":        "context",
+				"type":          "context",
 				"message_count": fmt.Sprintf("%d", len(messages)),
 			},
 		},

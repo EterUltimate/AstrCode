@@ -37,11 +37,11 @@ type ToolPermissionChecker interface {
 
 // Executor 负责执行 Skill Plan（Phase 4: 事件驱动 + 实时推送）
 type Executor struct {
-	sdkClient           *sdk.AstrBotClient
-	sink                EventSink
-	hookRegistry        *hook.HookRegistry      // Hook 系统注册表
-	pipelineExec        *pipeline.Executor      // Pipeline 并行执行器
-	permissionChecker   ToolPermissionChecker   // 工具权限检查器（Phase 4）
+	sdkClient         *sdk.AstrBotClient
+	sink              EventSink
+	hookRegistry      *hook.HookRegistry    // Hook 系统注册表
+	pipelineExec      *pipeline.Executor    // Pipeline 并行执行器
+	permissionChecker ToolPermissionChecker // 工具权限检查器（Phase 4）
 }
 
 // NewExecutor 创建新的执行器

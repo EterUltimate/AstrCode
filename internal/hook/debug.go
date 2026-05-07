@@ -25,10 +25,10 @@ import (
 
 // DebugHook Hook 调试处理器（Phase 6）
 type DebugHook struct {
-	mu          sync.Mutex
-	executions  []HookExecution
-	maxHistory  int
-	enabled     bool
+	mu         sync.Mutex
+	executions []HookExecution
+	maxHistory int
+	enabled    bool
 }
 
 // HookExecution 记录单次 Hook 执行

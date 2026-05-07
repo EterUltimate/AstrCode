@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/EterUltimate/astrcode/internal/model"
 	"github.com/EterUltimate/astrcode/internal/mode"
+	"github.com/EterUltimate/astrcode/internal/model"
 	"github.com/EterUltimate/astrcode/internal/prompt"
 )
 

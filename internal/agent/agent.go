@@ -35,20 +35,20 @@ import (
 // Agent AstrCode 核心 Agent = AstrBot 智能开发助手
 // 职责：理解开发者意图 → 检索相关 Skill → 生成插件代码 → 审查与部署
 type Agent struct {
-	retriever    *skill.Retriever
-	planner      *skill.Planner
-	executor     *skill.Executor
-	skillLoader  *skill.Loader
-	starManager  *skill.StarManager
-	skillCache   *cache.SkillCache
-	planCache    *cache.MemoryCache
-	sdkClient    *sdk.AstrBotClient
-	promptEngine *prompt.Engine
+	retriever      *skill.Retriever
+	planner        *skill.Planner
+	executor       *skill.Executor
+	skillLoader    *skill.Loader
+	starManager    *skill.StarManager
+	skillCache     *cache.SkillCache
+	planCache      *cache.MemoryCache
+	sdkClient      *sdk.AstrBotClient
+	promptEngine   *prompt.Engine
 	promptComposer *prompt.Composer // Phase 3: Prompt 组装器
-	llmClient    *llm.Client
-	eventSink    skill.EventSink    // Phase 4: 事件回调
-	hookRegistry *hook.HookRegistry // Hook 系统注册表
-	modeCtrl     *ModeController    // 运行模式控制器
+	llmClient      *llm.Client
+	eventSink      skill.EventSink    // Phase 4: 事件回调
+	hookRegistry   *hook.HookRegistry // Hook 系统注册表
+	modeCtrl       *ModeController    // 运行模式控制器
 }
 
 // NewAgent 创建新的 Agent
@@ -56,26 +56,26 @@ func NewAgent(llmClient *llm.Client, sdkClient *sdk.AstrBotClient) *Agent {
 	modeManager := mode.NewManager(mode.DefaultConfig())
 	promptCache := prompt.NewPromptCache(5 * time.Minute)
 	promptComposer := prompt.NewComposer(promptCache)
-	
+
 	agent := &Agent{
-		retriever:    skill.NewRetriever(),
-		planner:      skill.NewPlanner(llmClient),
-		executor:     skill.NewExecutor(sdkClient),
-		skillLoader:  skill.NewLoader("./skills"),
-		starManager:  skill.NewStarManager(),
-		skillCache:   cache.NewSkillCache(),
-		planCache:    cache.NewMemoryCache(),
-		sdkClient:    sdkClient,
-		promptEngine: prompt.NewEngine(),
+		retriever:      skill.NewRetriever(),
+		planner:        skill.NewPlanner(llmClient),
+		executor:       skill.NewExecutor(sdkClient),
+		skillLoader:    skill.NewLoader("./skills"),
+		starManager:    skill.NewStarManager(),
+		skillCache:     cache.NewSkillCache(),
+		planCache:      cache.NewMemoryCache(),
+		sdkClient:      sdkClient,
+		promptEngine:   prompt.NewEngine(),
 		promptComposer: promptComposer,
-		llmClient:    llmClient,
-		hookRegistry: hook.NewHookRegistry(),
-		modeCtrl:     NewModeController(modeManager),
+		llmClient:      llmClient,
+		hookRegistry:   hook.NewHookRegistry(),
+		modeCtrl:       NewModeController(modeManager),
 	}
-	
+
 	// Phase 4: 将 ModeController 设置为 Executor 的权限检查器
 	agent.executor.SetPermissionChecker(agent.modeCtrl)
-	
+
 	return agent
 }
 
@@ -85,26 +85,26 @@ func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, emb
 	modeManager := mode.NewManager(mode.DefaultConfig())
 	promptCache := prompt.NewPromptCache(5 * time.Minute)
 	promptComposer := prompt.NewComposer(promptCache)
-	
+
 	agent := &Agent{
-		retriever:    skill.NewRetrieverWithIndex(index),
-		planner:      skill.NewPlanner(llmClient),
-		executor:     skill.NewExecutor(sdkClient),
-		skillLoader:  skill.NewLoader("./skills"),
-		starManager:  skill.NewStarManager(),
-		skillCache:   cache.NewSkillCache(),
-		planCache:    cache.NewMemoryCache(),
-		sdkClient:    sdkClient,
-		promptEngine: prompt.NewEngine(),
+		retriever:      skill.NewRetrieverWithIndex(index),
+		planner:        skill.NewPlanner(llmClient),
+		executor:       skill.NewExecutor(sdkClient),
+		skillLoader:    skill.NewLoader("./skills"),
+		starManager:    skill.NewStarManager(),
+		skillCache:     cache.NewSkillCache(),
+		planCache:      cache.NewMemoryCache(),
+		sdkClient:      sdkClient,
+		promptEngine:   prompt.NewEngine(),
 		promptComposer: promptComposer,
-		llmClient:    llmClient,
-		hookRegistry: hook.NewHookRegistry(),
-		modeCtrl:     NewModeController(modeManager),
+		llmClient:      llmClient,
+		hookRegistry:   hook.NewHookRegistry(),
+		modeCtrl:       NewModeController(modeManager),
 	}
-	
+
 	// Phase 4: 将 ModeController 设置为 Executor 的权限检查器
 	agent.executor.SetPermissionChecker(agent.modeCtrl)
-	
+
 	return agent
 }
 
@@ -154,32 +154,32 @@ func (a *Agent) AssemblePromptWithComposer(ctx context.Context, task string, ski
 	if a.promptComposer == nil {
 		return "", fmt.Errorf("prompt composer not initialized")
 	}
-	
+
 	// 清空之前的 contributor（可选，根据需求决定）
 	// a.promptComposer.ClearCache()
-	
+
 	// 注册系统提示
 	systemContributor := prompt.NewSystemPromptContributor(
 		"你是一个智能任务编排助手。你的职责是理解用户任务，选择合适的技能，并生成高效的执行计划。",
 	)
 	a.promptComposer.RegisterContributor(systemContributor)
-	
+
 	// 注册任务描述
 	taskContributor := prompt.NewTaskContributor(task)
 	a.promptComposer.RegisterContributor(taskContributor)
-	
+
 	// 注册技能列表
 	if len(skills) > 0 {
 		skillsContributor := prompt.NewSkillsContributor(skills)
 		a.promptComposer.RegisterContributor(skillsContributor)
 	}
-	
+
 	// 组装 prompt
 	finalPrompt, err := a.promptComposer.Assemble(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to assemble prompt: %w", err)
 	}
-	
+
 	return finalPrompt, nil
 }
 

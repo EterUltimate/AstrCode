@@ -33,9 +33,9 @@ var upgrader = websocket.Upgrader{
 
 // Client 表示一个 WebSocket 客户端连接
 type Client struct {
-	conn        *websocket.Conn
+	conn          *websocket.Conn
 	subscriptions map[string]bool // 订阅的事件类型或任务ID
-	send        chan *model.WSEvent
+	send          chan *model.WSEvent
 }
 
 // Hub WebSocket 广播中心（Phase 6: 增强版）
@@ -45,34 +45,34 @@ type Hub struct {
 	register   chan *Client
 	unregister chan *Client
 	mu         sync.RWMutex
-	
+
 	// Phase 6: 事件历史缓冲区（用于新客户端回放）
 	eventHistory []*model.WSEvent
 	maxHistory   int
 	historyMu    sync.RWMutex
-	
+
 	// Phase 6: 统计信息
-	stats HubStats
+	stats   HubStats
 	statsMu sync.RWMutex
 }
 
 // HubStats Hub 统计信息
 type HubStats struct {
-	TotalConnections   int64     `json:"total_connections"`
-	ActiveConnections  int       `json:"active_connections"`
-	TotalEventsSent    int64     `json:"total_events_sent"`
-	LastEventTime      time.Time `json:"last_event_time"`
-	PeakConnections    int       `json:"peak_connections"`
+	TotalConnections  int64     `json:"total_connections"`
+	ActiveConnections int       `json:"active_connections"`
+	TotalEventsSent   int64     `json:"total_events_sent"`
+	LastEventTime     time.Time `json:"last_event_time"`
+	PeakConnections   int       `json:"peak_connections"`
 }
 
 // NewHub 创建广播中心
 func NewHub() *Hub {
 	return &Hub{
-		clients:    make(map[*Client]bool),
-		broadcast:  make(chan *model.WSEvent, 256),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		maxHistory: 100, // 保留最近 100 个事件
+		clients:      make(map[*Client]bool),
+		broadcast:    make(chan *model.WSEvent, 256),
+		register:     make(chan *Client),
+		unregister:   make(chan *Client),
+		maxHistory:   100, // 保留最近 100 个事件
 		eventHistory: make([]*model.WSEvent, 0, 100),
 	}
 }
@@ -85,7 +85,7 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			h.clients[client] = true
 			h.mu.Unlock()
-			
+
 			// 更新统计
 			h.statsMu.Lock()
 			h.stats.TotalConnections++
@@ -94,9 +94,9 @@ func (h *Hub) Run() {
 				h.stats.PeakConnections = h.stats.ActiveConnections
 			}
 			h.statsMu.Unlock()
-			
+
 			log.Printf("WebSocket client connected (total: %d)", len(h.clients))
-			
+
 			// Phase 6: 发送历史事件回放（最近 10 个事件）
 			go h.replayRecentEvents(client, 10)
 
@@ -108,25 +108,25 @@ func (h *Hub) Run() {
 				client.conn.Close()
 			}
 			h.mu.Unlock()
-			
+
 			// 更新统计
 			h.statsMu.Lock()
 			h.stats.ActiveConnections = len(h.clients)
 			h.statsMu.Unlock()
-			
+
 			log.Printf("WebSocket client disconnected (total: %d)", len(h.clients))
 
 		case event := <-h.broadcast:
 			// Phase 6: 添加到事件历史
 			h.addToHistory(event)
-			
+
 			h.mu.RLock()
 			for client := range h.clients {
 				// Phase 6: 检查客户端是否订阅了该事件
 				if !h.isSubscribed(client, event) {
 					continue
 				}
-				
+
 				select {
 				case client.send <- event:
 					// 成功发送
@@ -136,7 +136,7 @@ func (h *Hub) Run() {
 				}
 			}
 			h.mu.RUnlock()
-			
+
 			// 更新统计
 			h.statsMu.Lock()
 			h.stats.TotalEventsSent++
@@ -159,7 +159,7 @@ func (h *Hub) Broadcast(event *model.WSEvent) {
 func (h *Hub) addToHistory(event *model.WSEvent) {
 	h.historyMu.Lock()
 	defer h.historyMu.Unlock()
-	
+
 	h.eventHistory = append(h.eventHistory, event)
 	if len(h.eventHistory) > h.maxHistory {
 		// 移除最旧的事件
@@ -171,12 +171,12 @@ func (h *Hub) addToHistory(event *model.WSEvent) {
 func (h *Hub) replayRecentEvents(client *Client, count int) {
 	h.historyMu.RLock()
 	defer h.historyMu.RUnlock()
-	
+
 	start := len(h.eventHistory) - count
 	if start < 0 {
 		start = 0
 	}
-	
+
 	recentEvents := h.eventHistory[start:]
 	for _, event := range recentEvents {
 		if h.isSubscribed(client, event) {
@@ -196,17 +196,17 @@ func (h *Hub) isSubscribed(client *Client, event *model.WSEvent) bool {
 	if len(client.subscriptions) == 0 {
 		return true
 	}
-	
+
 	// 检查是否订阅了该事件类型
 	if client.subscriptions[event.Type] {
 		return true
 	}
-	
+
 	// 检查是否订阅了该任务ID
 	if event.TaskID != "" && client.subscriptions["task:"+event.TaskID] {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -214,7 +214,7 @@ func (h *Hub) isSubscribed(client *Client, event *model.WSEvent) bool {
 func (h *Hub) Subscribe(client *Client, subscription string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	
+
 	if client.subscriptions == nil {
 		client.subscriptions = make(map[string]bool)
 	}
@@ -225,7 +225,7 @@ func (h *Hub) Subscribe(client *Client, subscription string) {
 func (h *Hub) Unsubscribe(client *Client, subscription string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	
+
 	if client.subscriptions != nil {
 		delete(client.subscriptions, subscription)
 	}
@@ -235,7 +235,7 @@ func (h *Hub) Unsubscribe(client *Client, subscription string) {
 func (h *Hub) GetStats() HubStats {
 	h.statsMu.RLock()
 	defer h.statsMu.RUnlock()
-	
+
 	stats := h.stats
 	stats.ActiveConnections = len(h.clients)
 	return stats
@@ -254,14 +254,14 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	
+
 	// Phase 6: 创建客户端对象
 	client := &Client{
-		conn: conn,
-		send: make(chan *model.WSEvent, 64), // 每个客户端的发送缓冲区
+		conn:          conn,
+		send:          make(chan *model.WSEvent, 64), // 每个客户端的发送缓冲区
 		subscriptions: make(map[string]bool),
 	}
-	
+
 	h.register <- client
 
 	// 发送连接确认
@@ -280,13 +280,13 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		h.unregister <- client
 	}()
-	
+
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			break
 		}
-		
+
 		// Phase 6: 处理客户端消息（订阅/取消订阅）
 		h.handleClientMessage(client, message)
 	}
@@ -299,7 +299,7 @@ func (h *Hub) writePump(client *Client) {
 		ticker.Stop()
 		client.conn.Close()
 	}()
-	
+
 	for {
 		select {
 		case event, ok := <-client.send:
@@ -308,16 +308,16 @@ func (h *Hub) writePump(client *Client) {
 				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			
+
 			data, err := json.Marshal(event)
 			if err != nil {
 				continue
 			}
-			
+
 			if err := client.conn.WriteMessage(websocket.TextMessage, data); err != nil {
 				return
 			}
-			
+
 		case <-ticker.C:
 			// 发送心跳
 			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -333,11 +333,11 @@ func (h *Hub) handleClientMessage(client *Client, message []byte) {
 		Type         string `json:"type"`
 		Subscription string `json:"subscription,omitempty"`
 	}
-	
+
 	if err := json.Unmarshal(message, &msg); err != nil {
 		return
 	}
-	
+
 	switch msg.Type {
 	case "subscribe":
 		if msg.Subscription != "" {
