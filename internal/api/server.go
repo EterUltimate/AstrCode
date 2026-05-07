@@ -67,6 +67,9 @@ func NewServer(ag *agent.Agent, hub *Hub, store *model.TaskStore, addr string) *
 
 	// WebSocket
 	mux.HandleFunc("/ws", hub.HandleWS)
+	
+	// Phase 6: WebSocket 统计 API
+	mux.HandleFunc("/api/ws/stats", s.handleWSStats)
 
 	// 健康检查
 	mux.HandleFunc("/api/health", s.handleHealth)
@@ -396,6 +399,16 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		},
 	}); encodeErr != nil {
 		_ = encodeErr // TODO: Add proper logging
+	}
+}
+
+// Phase 6: handleWSStats WebSocket 统计信息
+func (s *Server) handleWSStats(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
+	stats := s.hub.GetStats()
+	if encodeErr := json.NewEncoder(w).Encode(stats); encodeErr != nil {
+		_ = encodeErr
 	}
 }
 
