@@ -30,12 +30,18 @@ import (
 // EventSink 步骤事件回调
 type EventSink func(event *model.WSEvent)
 
+// ToolPermissionChecker 工具权限检查器接口（Phase 4）
+type ToolPermissionChecker interface {
+	IsToolAllowed(toolName string) bool
+}
+
 // Executor 负责执行 Skill Plan（Phase 4: 事件驱动 + 实时推送）
 type Executor struct {
-	sdkClient    *sdk.AstrBotClient
-	sink         EventSink
-	hookRegistry *hook.HookRegistry // Hook 系统注册表
-	pipelineExec *pipeline.Executor // Pipeline 并行执行器
+	sdkClient           *sdk.AstrBotClient
+	sink                EventSink
+	hookRegistry        *hook.HookRegistry      // Hook 系统注册表
+	pipelineExec        *pipeline.Executor      // Pipeline 并行执行器
+	permissionChecker   ToolPermissionChecker   // 工具权限检查器（Phase 4）
 }
 
 // NewExecutor 创建新的执行器
@@ -75,6 +81,11 @@ func (e *Executor) GetHookRegistry() *hook.HookRegistry {
 // SetPipelineConfig 设置 Pipeline 配置
 func (e *Executor) SetPipelineConfig(config *pipeline.Config) {
 	e.pipelineExec = pipeline.NewExecutor(config)
+}
+
+// SetPermissionChecker 设置工具权限检查器（Phase 4）
+func (e *Executor) SetPermissionChecker(checker ToolPermissionChecker) {
+	e.permissionChecker = checker
 }
 
 // emit 发送事件
@@ -214,6 +225,17 @@ func (e *Executor) executeStepWithRetryAndEvents(ctx context.Context, step *mode
 
 // executeStep 执行单个步骤
 func (e *Executor) executeStep(ctx context.Context, step *model.Step) (interface{}, error) {
+	// Phase 4: 检查工具权限（根据当前运行模式）
+	if e.permissionChecker != nil {
+		toolName := step.Skill
+		if toolName == "" {
+			toolName = string(step.Type)
+		}
+		if !e.permissionChecker.IsToolAllowed(toolName) {
+			return nil, fmt.Errorf("tool '%s' is not allowed in current mode", toolName)
+		}
+	}
+
 	// 执行 BeforeToolUse 钩子
 	if e.hookRegistry != nil {
 		event := hook.HookEvent{

@@ -57,7 +57,7 @@ func NewAgent(llmClient *llm.Client, sdkClient *sdk.AstrBotClient) *Agent {
 	promptCache := prompt.NewPromptCache(5 * time.Minute)
 	promptComposer := prompt.NewComposer(promptCache)
 	
-	return &Agent{
+	agent := &Agent{
 		retriever:    skill.NewRetriever(),
 		planner:      skill.NewPlanner(llmClient),
 		executor:     skill.NewExecutor(sdkClient),
@@ -72,6 +72,11 @@ func NewAgent(llmClient *llm.Client, sdkClient *sdk.AstrBotClient) *Agent {
 		hookRegistry: hook.NewHookRegistry(),
 		modeCtrl:     NewModeController(modeManager),
 	}
+	
+	// Phase 4: 将 ModeController 设置为 Executor 的权限检查器
+	agent.executor.SetPermissionChecker(agent.modeCtrl)
+	
+	return agent
 }
 
 // NewAgentWithVector 创建带向量检索的 Agent
@@ -81,7 +86,7 @@ func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, emb
 	promptCache := prompt.NewPromptCache(5 * time.Minute)
 	promptComposer := prompt.NewComposer(promptCache)
 	
-	return &Agent{
+	agent := &Agent{
 		retriever:    skill.NewRetrieverWithIndex(index),
 		planner:      skill.NewPlanner(llmClient),
 		executor:     skill.NewExecutor(sdkClient),
@@ -96,6 +101,11 @@ func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, emb
 		hookRegistry: hook.NewHookRegistry(),
 		modeCtrl:     NewModeController(modeManager),
 	}
+	
+	// Phase 4: 将 ModeController 设置为 Executor 的权限检查器
+	agent.executor.SetPermissionChecker(agent.modeCtrl)
+	
+	return agent
 }
 
 // SetEventSink 设置事件回调（WebSocket 推送用）
@@ -137,6 +147,40 @@ func (a *Agent) RegisterPromptContributor(contributor prompt.PromptContributor) 
 	if a.promptComposer != nil {
 		a.promptComposer.RegisterContributor(contributor)
 	}
+}
+
+// AssemblePromptWithComposer 使用 PromptComposer 组装 prompt（Phase 4）
+func (a *Agent) AssemblePromptWithComposer(ctx context.Context, task string, skills []model.Skill) (string, error) {
+	if a.promptComposer == nil {
+		return "", fmt.Errorf("prompt composer not initialized")
+	}
+	
+	// 清空之前的 contributor（可选，根据需求决定）
+	// a.promptComposer.ClearCache()
+	
+	// 注册系统提示
+	systemContributor := prompt.NewSystemPromptContributor(
+		"你是一个智能任务编排助手。你的职责是理解用户任务，选择合适的技能，并生成高效的执行计划。",
+	)
+	a.promptComposer.RegisterContributor(systemContributor)
+	
+	// 注册任务描述
+	taskContributor := prompt.NewTaskContributor(task)
+	a.promptComposer.RegisterContributor(taskContributor)
+	
+	// 注册技能列表
+	if len(skills) > 0 {
+		skillsContributor := prompt.NewSkillsContributor(skills)
+		a.promptComposer.RegisterContributor(skillsContributor)
+	}
+	
+	// 组装 prompt
+	finalPrompt, err := a.promptComposer.Assemble(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to assemble prompt: %w", err)
+	}
+	
+	return finalPrompt, nil
 }
 
 // RegisterSkill 注册 Skill
