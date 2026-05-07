@@ -45,13 +45,13 @@ func TestManager_Toggle(t *testing.T) {
 	}
 
 	// Toggle 到 plan 模式
-	mgr.Toggle()
+	_ = mgr.Toggle()
 	if !mgr.IsPlanMode() {
 		t.Error("Should be in plan mode after toggle")
 	}
 
 	// Toggle 回 code 模式
-	mgr.Toggle()
+	_ = mgr.Toggle()
 	if !mgr.IsCodeMode() {
 		t.Error("Should be in code mode after second toggle")
 	}
@@ -82,7 +82,7 @@ func TestManager_ShouldRequireApproval(t *testing.T) {
 	config1 := DefaultConfig()
 	config1.RequireApproval = true
 	mgr1 := NewManager(config1)
-	mgr1.SwitchToPlan()
+	_ = mgr1.SwitchToPlan()
 
 	if !mgr1.ShouldRequireApproval() {
 		t.Error("Should require approval in plan mode with RequireApproval=true")
@@ -92,7 +92,7 @@ func TestManager_ShouldRequireApproval(t *testing.T) {
 	config2 := DefaultConfig()
 	config2.RequireApproval = false
 	mgr2 := NewManager(config2)
-	mgr2.SwitchToPlan()
+	_ = mgr2.SwitchToPlan()
 
 	if mgr2.ShouldRequireApproval() {
 		t.Error("Should not require approval when RequireApproval=false")
@@ -110,7 +110,7 @@ func TestManager_ShouldAutoGeneratePlan(t *testing.T) {
 	config1 := DefaultConfig()
 	config1.AutoGeneratePlan = true
 	mgr1 := NewManager(config1)
-	mgr1.SwitchToPlan()
+	_ = mgr1.SwitchToPlan()
 
 	if !mgr1.ShouldAutoGeneratePlan() {
 		t.Error("Should auto-generate plan in plan mode with AutoGeneratePlan=true")
@@ -120,7 +120,7 @@ func TestManager_ShouldAutoGeneratePlan(t *testing.T) {
 	config2 := DefaultConfig()
 	config2.AutoGeneratePlan = false
 	mgr2 := NewManager(config2)
-	mgr2.SwitchToPlan()
+	_ = mgr2.SwitchToPlan()
 
 	if mgr2.ShouldAutoGeneratePlan() {
 		t.Error("Should not auto-generate plan when AutoGeneratePlan=false")
@@ -142,7 +142,7 @@ func TestManager_GetModeDescription(t *testing.T) {
 	}
 
 	// 切换到计划模式
-	mgr.SwitchToPlan()
+	_ = mgr.SwitchToPlan()
 	desc = mgr.GetModeDescription()
 	if desc == "" {
 		t.Error("Expected non-empty description for plan mode")
@@ -178,7 +178,7 @@ func TestManager_ConcurrentAccess(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func() {
 			mgr.GetMode()
-			mgr.Toggle()
+			_ = mgr.Toggle()
 			mgr.IsCodeMode()
 			mgr.IsPlanMode()
 			done <- true

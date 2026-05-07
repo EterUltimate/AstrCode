@@ -39,7 +39,7 @@ func TestRegistry_RegisterCustomTool_Duplicate(t *testing.T) {
 	tool1 := &CustomTool{Name: "tool1"}
 	tool2 := &CustomTool{Name: "tool1"}
 
-	reg.RegisterCustomTool(tool1)
+	_ = reg.RegisterCustomTool(tool1)
 	err := reg.RegisterCustomTool(tool2)
 
 	if err == nil {
@@ -50,9 +50,9 @@ func TestRegistry_RegisterCustomTool_Duplicate(t *testing.T) {
 func TestRegistry_ListCustomTools(t *testing.T) {
 	reg := NewRegistry()
 
-	reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
-	reg.RegisterCustomTool(&CustomTool{Name: "tool2"})
-	reg.RegisterCustomTool(&CustomTool{Name: "tool3"})
+	_ = reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
+	_ = reg.RegisterCustomTool(&CustomTool{Name: "tool2"})
+	_ = reg.RegisterCustomTool(&CustomTool{Name: "tool3"})
 
 	tools := reg.ListCustomTools()
 	if len(tools) != 3 {
@@ -63,7 +63,7 @@ func TestRegistry_ListCustomTools(t *testing.T) {
 func TestRegistry_UnregisterCustomTool(t *testing.T) {
 	reg := NewRegistry()
 
-	reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
+	_ = reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
 
 	err := reg.UnregisterCustomTool("tool1")
 	if err != nil {
@@ -107,7 +107,7 @@ func TestRegistry_RegisterSlashCommand_AutoPrefix(t *testing.T) {
 	reg := NewRegistry()
 
 	cmd := &SlashCommand{Command: "test"}
-	reg.RegisterSlashCommand(cmd)
+	_ = reg.RegisterSlashCommand(cmd)
 
 	// 验证自动添加了 / 前缀
 	_, exists := reg.GetSlashCommand("/test")
@@ -119,9 +119,9 @@ func TestRegistry_RegisterSlashCommand_AutoPrefix(t *testing.T) {
 func TestRegistry_ListSlashCommands(t *testing.T) {
 	reg := NewRegistry()
 
-	reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd1"})
-	reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd2"})
-	reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd3"})
+	_ = reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd1"})
+	_ = reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd2"})
+	_ = reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd3"})
 
 	commands := reg.ListSlashCommands()
 	if len(commands) != 3 {
@@ -136,9 +136,9 @@ func TestRegistry_RegisterMiddleware(t *testing.T) {
 	mw2 := &Middleware{Name: "mw2", Priority: 1}
 	mw3 := &Middleware{Name: "mw3", Priority: 3}
 
-	reg.RegisterMiddleware(mw1)
-	reg.RegisterMiddleware(mw2)
-	reg.RegisterMiddleware(mw3)
+	_ = reg.RegisterMiddleware(mw1)
+	_ = reg.RegisterMiddleware(mw2)
+	_ = reg.RegisterMiddleware(mw3)
 
 	middlewares := reg.GetMiddlewares()
 
@@ -160,7 +160,7 @@ func TestRegistry_ExecuteMiddlewareChain(t *testing.T) {
 	reg := NewRegistry()
 
 	// 注册中间件链
-	reg.RegisterMiddleware(&Middleware{
+	_ = reg.RegisterMiddleware(&Middleware{
 		Name: "uppercase",
 		Handler: func(ctx context.Context, data interface{}) (interface{}, error) {
 			if str, ok := data.(string); ok {
@@ -171,7 +171,7 @@ func TestRegistry_ExecuteMiddlewareChain(t *testing.T) {
 		Priority: 1,
 	})
 
-	reg.RegisterMiddleware(&Middleware{
+	_ = reg.RegisterMiddleware(&Middleware{
 		Name: "add_timestamp",
 		Handler: func(ctx context.Context, data interface{}) (interface{}, error) {
 			if str, ok := data.(string); ok {
@@ -196,10 +196,10 @@ func TestRegistry_ExecuteMiddlewareChain(t *testing.T) {
 func TestRegistry_GetStats(t *testing.T) {
 	reg := NewRegistry()
 
-	reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
-	reg.RegisterCustomTool(&CustomTool{Name: "tool2"})
-	reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd1"})
-	reg.RegisterMiddleware(&Middleware{Name: "mw1"})
+	_ = reg.RegisterCustomTool(&CustomTool{Name: "tool1"})
+	_ = reg.RegisterCustomTool(&CustomTool{Name: "tool2"})
+	_ = reg.RegisterSlashCommand(&SlashCommand{Command: "/cmd1"})
+	_ = reg.RegisterMiddleware(&Middleware{Name: "mw1"})
 
 	stats := reg.GetStats()
 
@@ -228,7 +228,7 @@ func TestRegistry_CustomTool_Handler(t *testing.T) {
 		},
 	}
 
-	reg.RegisterCustomTool(tool)
+	_ = reg.RegisterCustomTool(tool)
 
 	retrieved, _ := reg.GetCustomTool("calculator")
 	result, err := retrieved.Handler(context.Background(), map[string]interface{}{
@@ -255,7 +255,7 @@ func TestRegistry_SlashCommand_Handler(t *testing.T) {
 		},
 	}
 
-	reg.RegisterSlashCommand(cmd)
+	_ = reg.RegisterSlashCommand(cmd)
 
 	retrieved, _ := reg.GetSlashCommand("/echo")
 	result, err := retrieved.Handler(context.Background(), []string{"hello", "world"})

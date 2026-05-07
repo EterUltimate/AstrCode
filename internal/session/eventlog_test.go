@@ -120,8 +120,8 @@ func TestEventLog_FilterByType(t *testing.T) {
 		SessionID: session.ID,
 	}
 
-	session.EventLog.Append(userMsg)
-	session.EventLog.Append(toolCall)
+	_ = session.EventLog.Append(userMsg)
+	_ = session.EventLog.Append(toolCall)
 
 	// 过滤特定类型
 	userEvents, err := session.EventLog.FilterByType(EventUserMessage)
@@ -154,7 +154,7 @@ func TestEventLog_LastN(t *testing.T) {
 				"index": i,
 			},
 		}
-		session.EventLog.Append(event)
+		_ = session.EventLog.Append(event)
 	}
 
 	// 获取最后 3 个
@@ -199,7 +199,7 @@ func TestEventLog_ReplayFrom(t *testing.T) {
 		if i == 2 {
 			targetEventID = event.ID
 		}
-		session.EventLog.Append(event)
+		_ = session.EventLog.Append(event)
 	}
 
 	// 从指定事件回放
@@ -258,10 +258,12 @@ func TestSession_Restore(t *testing.T) {
 		Timestamp: time.Now(),
 		SessionID: sessionID,
 	}
-	session.EventLog.Append(event)
+	_ = session.EventLog.Append(event)
 
 	// 结束会话
-	manager.EndSession(sessionID)
+	if err := manager.EndSession(sessionID); err != nil {
+		t.Fatalf("Failed to end session: %v", err)
+	}
 
 	// 恢复会话
 	restoredSession, err := manager.RestoreSession(sessionID)
@@ -306,7 +308,7 @@ func TestEventLog_ThreadSafety(t *testing.T) {
 					"goroutine": index,
 				},
 			}
-			session.EventLog.Append(event)
+			_ = session.EventLog.Append(event)
 			done <- true
 		}(i)
 	}
