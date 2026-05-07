@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/EterUltimate/astrcode/internal/hook"
 	"github.com/EterUltimate/astrcode/internal/model"
 	"github.com/EterUltimate/astrcode/internal/sdk"
 )
@@ -31,23 +32,41 @@ type EventSink func(event *model.WSEvent)
 
 // Executor 负责执行 Skill Plan（Phase 4: 事件驱动 + 实时推送）
 type Executor struct {
-	sdkClient *sdk.AstrBotClient
-	sink      EventSink
+	sdkClient    *sdk.AstrBotClient
+	sink         EventSink
+	hookRegistry *hook.HookRegistry // Hook 系统注册表
 }
 
 // NewExecutor 创建新的执行器
 func NewExecutor(sdkClient *sdk.AstrBotClient) *Executor {
-	return &Executor{sdkClient: sdkClient}
+	return &Executor{
+		sdkClient:    sdkClient,
+		hookRegistry: hook.NewHookRegistry(),
+	}
 }
 
 // NewExecutorWithSink 创建带事件推送的执行器
 func NewExecutorWithSink(sdkClient *sdk.AstrBotClient, sink EventSink) *Executor {
-	return &Executor{sdkClient: sdkClient, sink: sink}
+	return &Executor{
+		sdkClient:    sdkClient,
+		sink:         sink,
+		hookRegistry: hook.NewHookRegistry(),
+	}
 }
 
 // SetEventSink 设置事件回调
 func (e *Executor) SetEventSink(sink EventSink) {
 	e.sink = sink
+}
+
+// SetHookRegistry 设置 Hook 注册表
+func (e *Executor) SetHookRegistry(registry *hook.HookRegistry) {
+	e.hookRegistry = registry
+}
+
+// GetHookRegistry 获取 Hook 注册表
+func (e *Executor) GetHookRegistry() *hook.HookRegistry {
+	return e.hookRegistry
 }
 
 // emit 发送事件
@@ -198,18 +217,52 @@ func (e *Executor) executeStepWithRetryAndEvents(ctx context.Context, step *mode
 
 // executeStep 执行单个步骤
 func (e *Executor) executeStep(ctx context.Context, step *model.Step) (interface{}, error) {
+	// 执行 BeforeToolUse 钩子
+	if e.hookRegistry != nil {
+		event := hook.HookEvent{
+			Type:      hook.HookBeforeToolUse,
+			SessionID: "astrcode-session", // TODO: 从上下文获取实际会话ID
+			TurnID:    "astrcode-turn",    // TODO: 从上下文获取实际轮次ID
+			Data:      map[string]interface{}{"step": step, "tool_name": step.Skill},
+		}
+		results := e.hookRegistry.Execute(ctx, hook.HookBeforeToolUse, event)
+		// 检查是否有阻断结果
+		for _, result := range results {
+			if !result.Allowed {
+				return nil, fmt.Errorf("tool execution blocked by hook: %v", result.Error)
+			}
+		}
+	}
+
+	var result interface{}
+	var err error
+
 	switch step.Type {
 	case model.StepTypeSkill:
-		return e.executeSkillStep(ctx, step)
+		result, err = e.executeSkillStep(ctx, step)
 	case model.StepTypeHandler:
-		return e.executeHandlerStep(ctx, step)
+		result, err = e.executeHandlerStep(ctx, step)
 	case model.StepTypeLLM:
-		return e.executeLLMStep(ctx, step)
+		result, err = e.executeLLMStep(ctx, step)
 	case model.StepTypeCondition:
-		return e.executeConditionStep(ctx, step)
+		result, err = e.executeConditionStep(ctx, step)
 	default:
 		return nil, fmt.Errorf("unknown step type: %s", step.Type)
 	}
+
+	// 执行 AfterToolUse 钩子
+	if e.hookRegistry != nil {
+		event := hook.HookEvent{
+			Type:      hook.HookAfterToolUse,
+			SessionID: "astrcode-session", // TODO: 从上下文获取实际会话ID
+			TurnID:    "astrcode-turn",    // TODO: 从上下文获取实际轮次ID
+			Data:      map[string]interface{}{"step": step, "tool_name": step.Skill, "result": result, "error": err},
+		}
+		// 异步执行 AfterToolUse 钩子
+		e.hookRegistry.Execute(ctx, hook.HookAfterToolUse, event)
+	}
+
+	return result, err
 }
 
 func (e *Executor) executeSkillStep(ctx context.Context, step *model.Step) (interface{}, error) {

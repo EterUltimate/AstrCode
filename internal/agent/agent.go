@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/EterUltimate/astrcode/internal/cache"
+	"github.com/EterUltimate/astrcode/internal/hook"
 	"github.com/EterUltimate/astrcode/internal/llm"
 	"github.com/EterUltimate/astrcode/internal/model"
 	"github.com/EterUltimate/astrcode/internal/prompt"
@@ -43,7 +44,8 @@ type Agent struct {
 	sdkClient    *sdk.AstrBotClient
 	promptEngine *prompt.Engine
 	llmClient    *llm.Client
-	eventSink    skill.EventSink // Phase 4: 事件回调
+	eventSink    skill.EventSink    // Phase 4: 事件回调
+	hookRegistry *hook.HookRegistry // Hook 系统注册表
 }
 
 // NewAgent 创建新的 Agent
@@ -59,6 +61,7 @@ func NewAgent(llmClient *llm.Client, sdkClient *sdk.AstrBotClient) *Agent {
 		sdkClient:    sdkClient,
 		promptEngine: prompt.NewEngine(),
 		llmClient:    llmClient,
+		hookRegistry: hook.NewHookRegistry(),
 	}
 }
 
@@ -76,6 +79,7 @@ func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, emb
 		sdkClient:    sdkClient,
 		promptEngine: prompt.NewEngine(),
 		llmClient:    llmClient,
+		hookRegistry: hook.NewHookRegistry(),
 	}
 }
 
@@ -83,6 +87,16 @@ func NewAgentWithVector(llmClient *llm.Client, sdkClient *sdk.AstrBotClient, emb
 func (a *Agent) SetEventSink(sink skill.EventSink) {
 	a.eventSink = sink
 	a.executor.SetEventSink(sink)
+}
+
+// GetHookRegistry 获取 Hook 注册表
+func (a *Agent) GetHookRegistry() *hook.HookRegistry {
+	return a.hookRegistry
+}
+
+// RegisterHook 注册钩子（便捷方法）
+func (a *Agent) RegisterHook(hookType hook.HookType, registeredHook hook.RegisteredHook) {
+	a.hookRegistry.Register(hookType, registeredHook)
 }
 
 // RegisterSkill 注册 Skill
@@ -161,15 +175,49 @@ func (a *Agent) processTask(ctx context.Context, taskContent string) (*model.Tas
 		CreatedAt: time.Now().Unix(),
 	}
 
+	// 执行 TurnStart 钩子
+	if a.hookRegistry != nil {
+		event := hook.HookEvent{
+			Type:      hook.HookTurnStart,
+			SessionID: "astrcode-session",
+			TurnID:    task.ID,
+			Data:      map[string]interface{}{"task_content": taskContent},
+		}
+		a.hookRegistry.Execute(ctx, hook.HookTurnStart, event)
+	}
+
 	// 1. 决策阶段
 	allSkills := a.retriever.AllSkills()
 	decisionPrompt := a.promptEngine.BuildDecisionPrompt(taskContent, allSkills)
+
+	// 执行 BeforeLLMCall 钩子
+	if a.hookRegistry != nil {
+		event := hook.HookEvent{
+			Type:      hook.HookBeforeLLMCall,
+			SessionID: "astrcode-session",
+			TurnID:    task.ID,
+			Data:      map[string]interface{}{"purpose": "decision", "prompt_length": len(decisionPrompt)},
+		}
+		a.hookRegistry.Execute(ctx, hook.HookBeforeLLMCall, event)
+	}
+
 	decisionResp, err := a.llmClient.Complete(ctx, decisionPrompt)
 	if err != nil {
 		task.Status = model.TaskStatusFailed
 		task.Error = fmt.Sprintf("decision failed: %v", err)
 		task.CompletedAt = time.Now().Unix()
 		return task, err
+	}
+
+	// 执行 AfterLLMCall 钩子
+	if a.hookRegistry != nil {
+		event := hook.HookEvent{
+			Type:      hook.HookAfterLLMCall,
+			SessionID: "astrcode-session",
+			TurnID:    task.ID,
+			Data:      map[string]interface{}{"purpose": "decision", "response_length": len(decisionResp)},
+		}
+		a.hookRegistry.Execute(ctx, hook.HookAfterLLMCall, event)
 	}
 
 	decision, err := a.promptEngine.ParseDecision(decisionResp)
@@ -215,7 +263,20 @@ func (a *Agent) processTask(ctx context.Context, taskContent string) (*model.Tas
 
 	// 4. 执行计划
 	task.Status = model.TaskStatusExecuting
-	return a.executor.Execute(ctx, plan)
+	result, err := a.executor.Execute(ctx, plan)
+
+	// 执行 TurnEnd 钩子
+	if a.hookRegistry != nil {
+		event := hook.HookEvent{
+			Type:      hook.HookTurnEnd,
+			SessionID: "astrcode-session",
+			TurnID:    task.ID,
+			Data:      map[string]interface{}{"status": result.Status, "error": result.Error},
+		}
+		a.hookRegistry.Execute(ctx, hook.HookTurnEnd, event)
+	}
+
+	return result, err
 }
 
 // GeneratePlan 生成计划（不执行，用于 /api/plan 预览）
