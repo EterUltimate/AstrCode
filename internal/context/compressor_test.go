@@ -110,7 +110,7 @@ func TestCompressor_EstimateTokens(t *testing.T) {
 	}
 
 	tokens := compressor.estimateTokens(messages)
-	
+
 	if tokens <= 0 {
 		t.Error("Expected positive token count")
 	}
@@ -182,7 +182,7 @@ func TestCompressionResult_GetCompressionStats(t *testing.T) {
 	}
 
 	stats := result.GetCompressionStats()
-	
+
 	if stats == "" {
 		t.Error("Expected non-empty stats string")
 	}

@@ -16,7 +16,7 @@ func NewCompressor(maxTokens int, thresholdRatio float64) *Compressor {
 	if thresholdRatio <= 0 || thresholdRatio > 1 {
 		thresholdRatio = 0.8
 	}
-	
+
 	return &Compressor{
 		maxTokens:      maxTokens,
 		thresholdRatio: thresholdRatio,
@@ -25,11 +25,11 @@ func NewCompressor(maxTokens int, thresholdRatio float64) *Compressor {
 
 // CompressionResult 压缩结果
 type CompressionResult struct {
-	OriginalTokens   int      `json:"original_tokens"`
-	CompressedTokens int      `json:"compressed_tokens"`
-	CompressionRatio float64  `json:"compression_ratio"`
-	RemovedMessages  []int    `json:"removed_messages"` // 被移除的消息索引
-	Summary          string   `json:"summary,omitempty"` // 生成的摘要
+	OriginalTokens   int     `json:"original_tokens"`
+	CompressedTokens int     `json:"compressed_tokens"`
+	CompressionRatio float64 `json:"compression_ratio"`
+	RemovedMessages  []int   `json:"removed_messages"`  // 被移除的消息索引
+	Summary          string  `json:"summary,omitempty"` // 生成的摘要
 }
 
 // ShouldCompress 检查是否需要压缩
@@ -41,7 +41,7 @@ func (c *Compressor) ShouldCompress(currentTokens int) bool {
 // CompressMessages 压缩消息列表
 func (c *Compressor) CompressMessages(messages []Message, currentTokens int) (*CompressionResult, error) {
 	if !c.ShouldCompress(currentTokens) {
-		return nil, fmt.Errorf("no compression needed: %d tokens < threshold %d", 
+		return nil, fmt.Errorf("no compression needed: %d tokens < threshold %d",
 			currentTokens, int(float64(c.maxTokens)*c.thresholdRatio))
 	}
 
@@ -55,7 +55,7 @@ func (c *Compressor) CompressMessages(messages []Message, currentTokens int) (*C
 
 	// 估算压缩后的 token 数
 	result.CompressedTokens = c.estimateTokens(compressedMessages)
-	
+
 	if result.CompressedTokens > 0 {
 		result.CompressionRatio = float64(result.CompressedTokens) / float64(result.OriginalTokens)
 	}
@@ -76,7 +76,7 @@ func (c *Compressor) CompressWithSummary(messages []Message, currentTokens int, 
 	// 保留系统消息和最近的消息
 	var messagesToSummarize []Message
 	var preservedMessages []Message
-	
+
 	for i, msg := range messages {
 		if msg.Role == "system" || i >= len(messages)-3 {
 			preservedMessages = append(preservedMessages, msg)
@@ -92,13 +92,13 @@ func (c *Compressor) CompressWithSummary(messages []Message, currentTokens int, 
 			return nil, fmt.Errorf("failed to generate summary: %w", err)
 		}
 		result.Summary = summary
-		
+
 		// 将摘要作为第一条消息
 		summaryMessage := Message{
 			Role:    "assistant",
 			Content: fmt.Sprintf("[Previous conversation summary]\n%s", summary),
 		}
-		
+
 		finalMessages := append([]Message{summaryMessage}, preservedMessages...)
 		result.CompressedTokens = c.estimateTokens(finalMessages)
 	} else {
@@ -116,7 +116,7 @@ func (c *Compressor) CompressWithSummary(messages []Message, currentTokens int, 
 func (c *Compressor) removeOldestMessages(messages []Message) ([]Message, []int) {
 	var preserved []Message
 	var removed []int
-	
+
 	systemMessages := 0
 	for _, msg := range messages {
 		if msg.Role == "system" {
@@ -126,14 +126,14 @@ func (c *Compressor) removeOldestMessages(messages []Message) ([]Message, []int)
 
 	// 至少保留系统消息和最近的 2 条消息
 	minPreserve := systemMessages + 2
-	
+
 	if len(messages) <= minPreserve {
 		return messages, nil
 	}
 
 	// 计算需要移除的数量
 	toRemove := len(messages) - minPreserve
-	
+
 	// 标记要移除的消息索引
 	for i := 0; i < toRemove; i++ {
 		if messages[i].Role != "system" {

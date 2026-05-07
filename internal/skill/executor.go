@@ -19,11 +19,11 @@ package skill
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/EterUltimate/astrcode/internal/hook"
 	"github.com/EterUltimate/astrcode/internal/model"
+	"github.com/EterUltimate/astrcode/internal/pipeline"
 	"github.com/EterUltimate/astrcode/internal/sdk"
 )
 
@@ -35,6 +35,7 @@ type Executor struct {
 	sdkClient    *sdk.AstrBotClient
 	sink         EventSink
 	hookRegistry *hook.HookRegistry // Hook 系统注册表
+	pipelineExec *pipeline.Executor // Pipeline 并行执行器
 }
 
 // NewExecutor 创建新的执行器
@@ -42,6 +43,7 @@ func NewExecutor(sdkClient *sdk.AstrBotClient) *Executor {
 	return &Executor{
 		sdkClient:    sdkClient,
 		hookRegistry: hook.NewHookRegistry(),
+		pipelineExec: pipeline.NewExecutor(pipeline.DefaultConfig()),
 	}
 }
 
@@ -51,6 +53,7 @@ func NewExecutorWithSink(sdkClient *sdk.AstrBotClient, sink EventSink) *Executor
 		sdkClient:    sdkClient,
 		sink:         sink,
 		hookRegistry: hook.NewHookRegistry(),
+		pipelineExec: pipeline.NewExecutor(pipeline.DefaultConfig()),
 	}
 }
 
@@ -67,6 +70,11 @@ func (e *Executor) SetHookRegistry(registry *hook.HookRegistry) {
 // GetHookRegistry 获取 Hook 注册表
 func (e *Executor) GetHookRegistry() *hook.HookRegistry {
 	return e.hookRegistry
+}
+
+// SetPipelineConfig 设置 Pipeline 配置
+func (e *Executor) SetPipelineConfig(config *pipeline.Config) {
+	e.pipelineExec = pipeline.NewExecutor(config)
 }
 
 // emit 发送事件
@@ -121,19 +129,8 @@ func (e *Executor) Execute(ctx context.Context, plan *model.Plan) (*model.Task, 
 		}
 
 		if plan.Parallel && plan.MaxParallel > 1 {
-			var wg sync.WaitGroup
-			sem := make(chan struct{}, plan.MaxParallel)
-
-			for _, step := range readySteps {
-				wg.Add(1)
-				sem <- struct{}{}
-				go func(s *model.Step) {
-					defer wg.Done()
-					defer func() { <-sem }()
-					e.executeStepWithRetryAndEvents(ctx, s, taskID, plan.ID, timeline)
-				}(step)
-			}
-			wg.Wait()
+			// 使用 Pipeline 并行执行
+			e.executeStepsWithPipeline(ctx, readySteps, taskID, plan.ID, timeline)
 		} else {
 			for _, step := range readySteps {
 				e.executeStepWithRetryAndEvents(ctx, step, taskID, plan.ID, timeline)
@@ -307,4 +304,37 @@ func (e *Executor) ExecuteHandler(ctx context.Context, handlerFullName string, e
 
 func generateTaskID() string {
 	return fmt.Sprintf("task_%d", time.Now().UnixNano())
+}
+
+// executeStepsWithPipeline 使用 Pipeline 并行执行步骤
+func (e *Executor) executeStepsWithPipeline(ctx context.Context, steps []*model.Step, taskID, planID string, timeline *model.StepTimeline) {
+	// 将步骤转换为 Pipeline 任务
+	var tasks []*pipeline.Task
+	for _, step := range steps {
+		stepCopy := step // 创建副本避免闭包问题
+		tasks = append(tasks, &pipeline.Task{
+			ID:       stepCopy.ID,
+			Priority: 1, // 默认优先级
+			Execute: func(taskCtx context.Context) (interface{}, error) {
+				// 执行步骤（带重试和事件）
+				e.executeStepWithRetryAndEvents(taskCtx, stepCopy, taskID, planID, timeline)
+				if stepCopy.Status == model.StepStatusFailed {
+					return nil, fmt.Errorf(stepCopy.Error)
+				}
+				return stepCopy.Result, nil
+			},
+		})
+	}
+
+	// 执行批处理
+	result, err := e.pipelineExec.ExecuteBatch(ctx, tasks)
+	if err != nil {
+		// 记录错误但不中断执行
+		timeline.Add("pipeline", "error", fmt.Sprintf("Pipeline execution error: %v", err))
+	}
+
+	// 记录统计信息
+	if result != nil {
+		timeline.Add("pipeline", "stats", result.GetStats())
+	}
 }
