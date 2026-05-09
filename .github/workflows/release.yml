@@ -153,11 +153,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version
+      - name: Extract metadata
         id: meta
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
+          # Convert repository name to lowercase for Docker tags
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "repo_lower=${REPO_LOWER}" >> $GITHUB_OUTPUT
 
       - name: Build and Push
         uses: docker/build-push-action@v6
@@ -165,7 +168,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
+            ghcr.io/${{ steps.meta.outputs.repo_lower }}:latest
+            ghcr.io/${{ steps.meta.outputs.repo_lower }}:${{ steps.meta.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
